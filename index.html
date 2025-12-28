@@ -1024,18 +1024,10 @@ document.getElementById('puzzle-canvas').addEventListener('click', (e) => {
         drawPuzzle();
         
         if (checkWin()) {
-            // Animation de victoire !
-            const puzzleCanvas = document.getElementById('puzzle-canvas');
-            puzzleCanvas.style.transition = 'filter 0.3s, transform 0.3s';
-            puzzleCanvas.style.filter = 'drop-shadow(0 0 30px var(--color)) drop-shadow(0 0 60px var(--color))';
-            puzzleCanvas.style.transform = 'scale(1.05)';
-            
             setTimeout(() => {
-                puzzleCanvas.style.filter = 'drop-shadow(0 0 15px var(--color))';
-                puzzleCanvas.style.transform = 'scale(1)';
                 generatePuzzle();
                 drawPuzzle();
-            }, 1200);
+            }, 500);
         }
     }
 });
