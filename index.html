@@ -86,11 +86,11 @@
             cursor: pointer;
             margin: 8px 0;
             transition: transform 0.1s, filter 0.2s;
-            filter: drop-shadow(0 0 0px transparent);
+            filter: drop-shadow(0 0 2px var(--color));
         }
 
         .menu-item:hover {
-            filter: drop-shadow(0 0 8px var(--color)) drop-shadow(0 0 15px var(--color));
+            filter: drop-shadow(0 0 4px var(--color)) drop-shadow(0 0 10px var(--color));
         }
 
         .menu-item:active {
@@ -115,10 +115,11 @@
         .top-icon {
             cursor: pointer;
             transition: filter 0.2s;
+            filter: drop-shadow(0 0 2px var(--color));
         }
         
         .top-icon:hover {
-            filter: drop-shadow(0 0 8px var(--color)) drop-shadow(0 0 15px var(--color));
+            filter: drop-shadow(0 0 4px var(--color)) drop-shadow(0 0 10px var(--color));
         }
 
         #puzzle-container {
@@ -132,12 +133,12 @@
 
         #puzzle-canvas {
             max-width: 100%;
-            filter: drop-shadow(0 0 15px var(--color));
+            filter: drop-shadow(0 0 3px var(--color));
         }
 
         #mode-canvas {
             margin-top: 25px;
-            filter: drop-shadow(0 0 8px var(--color));
+            filter: drop-shadow(0 0 5px var(--color)) drop-shadow(0 0 12px var(--color));
         }
 
         /* Difficulty screen */
@@ -179,12 +180,12 @@
             padding: 60px 20px;
         }
 
-        /* Theme colors */
-        body { --color: #4a4; --color-bright: #5c5; }
-        body.theme-cyan { --color: #4aa; --color-bright: #5cc; }
-        body.theme-amber { --color: #a84; --color-bright: #ca6; }
-        body.theme-white { --color: #999; --color-bright: #bbb; }
-        body.theme-pink { --color: #a4a; --color-bright: #c5c; }
+        /* Theme colors - boosted brightness */
+        body { --color: #5c5; --color-bright: #7f7; }
+        body.theme-cyan { --color: #5cc; --color-bright: #7ee; }
+        body.theme-amber { --color: #ca6; --color-bright: #ec8; }
+        body.theme-white { --color: #bbb; --color-bright: #ddd; }
+        body.theme-pink { --color: #c5c; --color-bright: #e7e; }
     </style>
 </head>
 <body>
@@ -807,8 +808,8 @@ function drawPuzzle() {
     canvas.height = size;
     
     const cellSize = size / gridSize;
-    const circleRadius = cellSize * 0.28;
-    const lineWidth = Math.max(2, Math.floor(size / 150));
+    const circleRadius = cellSize * 0.22;
+    const lineWidth = Math.max(4, Math.floor(size / 100));
     
     ctx.clearRect(0, 0, size, size);
     
@@ -892,15 +893,19 @@ function drawPuzzle() {
                     ctx.stroke();
                 }
             } else {
-                // Empty circle - draw with scanline effect manually
+                // Empty circle - draw thick pixelated outline with scanlines
                 ctx.fillStyle = color;
-                for (let angle = 0; angle < Math.PI * 2; angle += 0.05) {
-                    const px = cx + Math.cos(angle) * currentRadius;
-                    const py = cy + Math.sin(angle) * currentRadius;
-                    
-                    // Only draw on even rows for scanline effect
-                    if (Math.floor(py) % 2 === 0) {
-                        ctx.fillRect(Math.floor(px) - 1, Math.floor(py), 3, 1);
+                const thickness = 4;
+                for (let t = 0; t < thickness; t++) {
+                    const r = currentRadius - t;
+                    for (let angle = 0; angle < Math.PI * 2; angle += 0.03) {
+                        const px = cx + Math.cos(angle) * r;
+                        const py = cy + Math.sin(angle) * r;
+                        
+                        // Only draw on even rows for scanline effect
+                        if (Math.floor(py) % 2 === 0) {
+                            ctx.fillRect(Math.floor(px), Math.floor(py), 2, 1);
+                        }
                     }
                 }
             }
