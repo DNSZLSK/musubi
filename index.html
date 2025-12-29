@@ -201,20 +201,26 @@
 
         /* Difficulty screen */
         #difficulty-screen {
-            justify-content: center;
-            padding: 40px 20px;
+            justify-content: space-between;
+            padding: 60px 20px 40px;
         }
 
         /* How to play */
         #howto-screen {
-            justify-content: center;
-            padding: 40px 20px;
+            justify-content: space-between;
+            padding: 60px 20px 40px;
         }
 
         /* Nickname */
         #nickname-screen {
-            justify-content: center;
-            padding: 40px 20px;
+            justify-content: space-between;
+            padding: 60px 20px 40px;
+        }
+        
+        #nickname-screen .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         #nickname-input {
@@ -234,8 +240,14 @@
 
         /* Leaderboard */
         #leaderboard-screen {
-            justify-content: flex-start;
-            padding: 60px 20px;
+            justify-content: space-between;
+            padding: 60px 20px 40px;
+        }
+        
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         /* Theme colors - boosted brightness */
@@ -341,23 +353,29 @@
         <!-- HOW TO PLAY -->
         <div id="howto-screen" class="screen">
             <canvas id="howto-title" width="280" height="50"></canvas>
-            <canvas id="howto-content" width="340" height="320" style="margin-top: 30px;"></canvas>
-            <canvas class="menu-item" id="howto-back" width="120" height="40" style="margin-top: 30px;"></canvas>
+            <div class="content">
+                <canvas id="howto-content" width="340" height="280"></canvas>
+            </div>
+            <canvas class="menu-item" id="howto-back" width="120" height="40"></canvas>
         </div>
 
         <!-- NICKNAME -->
         <div id="nickname-screen" class="screen">
             <canvas id="nickname-title" width="320" height="50"></canvas>
-            <input type="text" id="nickname-input" maxlength="10" placeholder="PLAYER">
-            <canvas class="menu-item" id="nickname-save" width="120" height="40"></canvas>
-            <canvas class="menu-item" id="nickname-back" width="120" height="40" style="margin-top: 15px;"></canvas>
+            <div class="content">
+                <input type="text" id="nickname-input" maxlength="10" placeholder="PLAYER">
+                <canvas class="menu-item" id="nickname-save" width="120" height="40"></canvas>
+            </div>
+            <canvas class="menu-item" id="nickname-back" width="120" height="40"></canvas>
         </div>
 
         <!-- LEADERBOARD -->
         <div id="leaderboard-screen" class="screen">
             <canvas id="leaderboard-title" width="300" height="50"></canvas>
-            <canvas id="leaderboard-list" width="320" height="400" style="margin-top: 25px;"></canvas>
-            <canvas class="menu-item" id="leaderboard-back" width="120" height="40" style="margin-top: 20px;"></canvas>
+            <div class="content">
+                <canvas id="leaderboard-list" width="320" height="380"></canvas>
+            </div>
+            <canvas class="menu-item" id="leaderboard-back" width="120" height="40"></canvas>
         </div>
     </div>
 
