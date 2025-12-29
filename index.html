@@ -348,7 +348,7 @@
             </div>
             <div id="puzzle-container">
                 <canvas id="puzzle-canvas" width="340" height="340"></canvas>
-                <canvas id="mode-canvas" width="300" height="40"></canvas>
+                <canvas id="mode-canvas" width="400" height="40"></canvas>
             </div>
         </div>
 
@@ -815,11 +815,11 @@ function drawGameScreen() {
     
     const modeCanvas = document.getElementById('mode-canvas');
     const ctx = modeCanvas.getContext('2d');
-    ctx.clearRect(0, 0, 300, 40);
+    ctx.clearRect(0, 0, 400, 40);
     
     const modeNames = { 4: 'Training', 5: 'Challenge', 6: 'Expert' };
     const displayText = modeNames[gridSize] + '  ' + currentScore + ' PTS';
-    drawCenteredScanlineText(ctx, displayText, 300, 10, 3, getColor());
+    drawCenteredScanlineText(ctx, displayText, 400, 10, 3, getColor());
 }
 
 function drawHowtoScreen() {
@@ -1232,10 +1232,10 @@ document.getElementById('puzzle-canvas').addEventListener('click', (e) => {
             // Mettre à jour l'affichage du score immédiatement
             const modeCanvas = document.getElementById('mode-canvas');
             const ctx = modeCanvas.getContext('2d');
-            ctx.clearRect(0, 0, 300, 40);
+            ctx.clearRect(0, 0, 400, 40);
             const modeNames = { 4: 'Training', 5: 'Challenge', 6: 'Expert' };
             const displayText = modeNames[gridSize] + '  ' + currentScore + ' PTS';
-            drawCenteredScanlineText(ctx, displayText, 300, 10, 3, getColor());
+            drawCenteredScanlineText(ctx, displayText, 400, 10, 3, getColor());
             
             setTimeout(() => {
                 generatePuzzle();
