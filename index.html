@@ -916,8 +916,12 @@ const LEADERBOARD_URL = 'https://script.google.com/macros/s/AKfycbzwwGm8kGbcjixp
 
 async function fetchLeaderboard() {
     try {
-        const response = await fetch(LEADERBOARD_URL);
+        const response = await fetch(LEADERBOARD_URL, {
+            method: 'GET',
+            redirect: 'follow'
+        });
         const data = await response.json();
+        console.log('Leaderboard data:', data);
         // Combiner tous les modes et trier
         const all = [...(data.training || []), ...(data.challenge || []), ...(data.expert || [])];
         all.sort((a, b) => b.score - a.score);
@@ -929,18 +933,22 @@ async function fetchLeaderboard() {
 }
 
 async function submitScore(score, mode) {
+    if (score <= 0) return;
+    
     try {
         const modeNames = { 4: 'training', 5: 'challenge', 6: 'expert' };
-        await fetch(LEADERBOARD_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                nickname: nickname,
-                score: score,
-                mode: modeNames[mode]
-            })
+        const params = new URLSearchParams({
+            nickname: nickname,
+            score: score,
+            mode: modeNames[mode] || 'training'
         });
+        
+        // Utiliser GET avec params pour contourner CORS
+        await fetch(LEADERBOARD_URL + '?action=submit&' + params.toString(), {
+            method: 'GET',
+            redirect: 'follow'
+        });
+        console.log('Score submitted:', score, nickname);
     } catch (e) {
         console.error('Score submit error:', e);
     }
@@ -1209,6 +1217,14 @@ document.getElementById('puzzle-canvas').addEventListener('click', (e) => {
             const points = gridSize * gridSize * 100;
             currentScore += points;
             puzzlesSolved++;
+            
+            // Mettre à jour l'affichage du score immédiatement
+            const modeCanvas = document.getElementById('mode-canvas');
+            const ctx = modeCanvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 40);
+            const modeNames = { 4: 'Training', 5: 'Challenge', 6: 'Expert' };
+            const displayText = modeNames[gridSize] + '  ' + currentScore + ' PTS';
+            drawCenteredScanlineText(ctx, displayText, 300, 10, 3, getColor());
             
             setTimeout(() => {
                 generatePuzzle();
