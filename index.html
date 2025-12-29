@@ -83,6 +83,15 @@
             gap: 5px;
         }
 
+        #credits-footer {
+            position: absolute;
+            bottom: 15px;
+            font-family: monospace;
+            font-size: 10px;
+            color: #333;
+            letter-spacing: 1px;
+        }
+
         #logo-img {
             width: 650px;
             max-width: 95%;
@@ -314,7 +323,8 @@
             <canvas class="menu-item" id="menu-leaderboard" width="280" height="45"></canvas>
             <canvas class="menu-item" id="menu-nickname" width="320" height="45"></canvas>
             <canvas class="menu-item" id="menu-howto" width="260" height="45"></canvas>
-            <canvas class="menu-item" id="menu-color" width="160" height="45" style="margin-top: 25px;"></canvas>
+            <canvas class="menu-item" id="menu-color" width="160" height="45" style="margin-top: 15px;"></canvas>
+            <div id="credits-footer">Inspired by Glyn by Emmanuel Roux</div>
         </div>
 
         <!-- DIFFICULTY -->
@@ -650,10 +660,33 @@ function animateStars() {
     
     const rgb = hexToRgb(getColor());
     
+    // Zone centrale de la grille (approximation)
+    const centerX = starsCanvas.width / 2;
+    const centerY = starsCanvas.height / 2;
+    const gameZoneRadius = Math.min(starsCanvas.width, starsCanvas.height) * 0.3;
+    
+    // Vérifier si on est en jeu
+    const gameScreen = document.getElementById('game-screen');
+    const isInGame = gameScreen && gameScreen.classList.contains('active');
+    
     starLayers.forEach(layer => {
-        starsCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${layer.alpha})`;
-        
         layer.stars.forEach(star => {
+            let alpha = layer.alpha;
+            
+            // Si en jeu, atténuer les étoiles proches du centre
+            if (isInGame) {
+                const dx = star.x - centerX;
+                const dy = star.y - centerY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < gameZoneRadius) {
+                    // Plus on est proche du centre, plus c'est atténué
+                    const factor = dist / gameZoneRadius;
+                    alpha = layer.alpha * (0.15 + factor * 0.85);
+                }
+            }
+            
+            starsCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
             starsCtx.fillRect(Math.floor(star.x), Math.floor(star.y), layer.size, layer.size);
             
             star.y += layer.speed;
@@ -1182,6 +1215,20 @@ if (iconMusic) iconMusic.addEventListener('click', () => {
 });
 
 document.getElementById('howto-back').addEventListener('click', () => showScreen('menu'));
+
+// Vider le champ nickname au premier clic seulement si c'est le défaut "PLAYER"
+const nicknameInput = document.getElementById('nickname-input');
+nicknameInput.addEventListener('focus', function() {
+    if (this.value === 'PLAYER' && nickname === 'PLAYER') {
+        this.value = '';
+    }
+});
+
+// Bloquer tout sauf lettres et chiffres
+nicknameInput.addEventListener('input', function() {
+    this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+});
+
 document.getElementById('nickname-save').addEventListener('click', () => {
     nickname = document.getElementById('nickname-input').value.toUpperCase() || 'PLAYER';
     localStorage.setItem('musubi_nickname', nickname);
@@ -1251,8 +1298,15 @@ const musicTracks = [
 let currentTrack = 0;
 
 const bgMusic = new Audio(musicTracks[0]);
-bgMusic.loop = true;
+bgMusic.loop = false;
 bgMusic.volume = 0.5;
+
+// Quand une musique se termine, passer à la suivante
+bgMusic.addEventListener('ended', () => {
+    currentTrack = (currentTrack + 1) % musicTracks.length;
+    bgMusic.src = musicTracks[currentTrack];
+    bgMusic.play().catch(() => {});
+});
 
 const beepSound = new Audio('https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/beepMenuChoice.mp3');
 beepSound.volume = 0.3;
