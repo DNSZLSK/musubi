@@ -64,11 +64,19 @@
             </div>
             <canvas class="menu-item" id="leaderboard-back" width="120" height="40"></canvas>
         </div>
+        <div id="gameover-screen" class="screen">
+            <canvas id="gameover-title" width="280" height="50"></canvas>
+            <div class="content">
+                <canvas id="gameover-score" width="380" height="120"></canvas>
+                <canvas class="menu-item" id="gameover-restart" width="200" height="45"></canvas>
+                <canvas class="menu-item" id="gameover-menu" width="120" height="45"></canvas>
+            </div>
+        </div>
     </div>
 <script>
 let starsEnabled=true,musicMuted=false,gridSize=4,circles=[],numbers=[],nickname=localStorage.getItem('musubi_nickname')||'PLAYER';
 const themes=['','theme-cyan','theme-amber','theme-white','theme-pink'];
-let currentTheme=0,chronoEnabled=false,chronoTime=30,chronoRemaining=0,chronoInterval=null,chronoActive=false;
+let currentTheme=0,chronoEnabled=false,chronoTime=120,chronoRemaining=0,chronoInterval=null,chronoActive=false;
 const leaderboardModes=['training','challenge','expert'];
 let currentLeaderboardMode=0,currentLeaderboardChrono=0,leaderboardData={training:[],challenge:[],expert:[],training_chrono:[],challenge_chrono:[],expert_chrono:[]},currentScore=0,puzzlesSolved=0,animations=[];
 let nicknameInput='',nicknameActive=false;
@@ -96,7 +104,7 @@ function drawIcon(id,type,active=true){const c=document.getElementById(id);if(!c
 function drawAllIcons(){drawIcon('icon-stars','stars',starsEnabled);drawIcon('icon-music','music',!musicMuted);drawIcon('icon-home','home',true)}
 function drawArrow(id,dir){const c=document.getElementById(id);if(!c)return;const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);drawCenteredScanlineText(ctx,dir==='left'?'<':'>',c.width,8,4,getColor())}
 
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id+'-screen').classList.add('active');if(id==='menu')drawMenuScreen();else if(id==='difficulty')drawDifficultyScreen();else if(id==='game')drawGameScreen();else if(id==='howto')drawHowtoScreen();else if(id==='nickname')drawNicknameScreen();else if(id==='leaderboard')drawLeaderboardScreen();if(id!=='nickname')stopNicknameInput()}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id+'-screen').classList.add('active');if(id==='menu')drawMenuScreen();else if(id==='difficulty')drawDifficultyScreen();else if(id==='game')drawGameScreen();else if(id==='howto')drawHowtoScreen();else if(id==='nickname')drawNicknameScreen();else if(id==='leaderboard')drawLeaderboardScreen();else if(id==='gameover')drawGameoverScreen();if(id!=='nickname')stopNicknameInput()}
 
 function drawMenuScreen(){const color=getColor();[['menu-newgame','NEW GAME'],['menu-leaderboard','LEADERBOARD'],['menu-nickname','YOUR NICKNAME'],['menu-howto','HOW TO PLAY'],['menu-color','COLOR']].forEach(([id,text])=>{const c=document.getElementById(id),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);drawCenteredScanlineText(ctx,text,c.width,12,3,color)})}
 
@@ -118,13 +126,15 @@ function stopNicknameInput(){nicknameActive=false;document.getElementById('hidde
 
 function drawLeaderboardScreen(){const color=getColor();const tc=document.getElementById('leaderboard-title');tc.getContext('2d').clearRect(0,0,300,50);drawCenteredScanlineText(tc.getContext('2d'),'LEADERBOARD',300,10,4,color);const cc=document.getElementById('lb-chrono-title'),cctx=cc.getContext('2d');cctx.clearRect(0,0,280,cc.height);const ps2=3,offT='OFF',onT='ON',offW2=getTextWidth(offT,ps2),onW2=getTextWidth(onT,ps2),bp2=4,th2=7*ps2,clW=getTextWidth('CHRONO',ps2),gap2=18,totW2=clW+gap2+offW2+bp2*2+gap2+onW2+bp2*2,stX2=(280-totW2)/2,y2=12;drawScanlineText(cctx,'CHRONO',stX2,y2,ps2,color);const obX2=stX2+clW+gap2,onbX2=obX2+offW2+bp2*2+gap2;if(currentLeaderboardChrono===0){cctx.fillStyle=color;for(let py=0;py<th2+bp2*2;py++){if(py%2===0)cctx.fillRect(obX2-bp2,y2-bp2+py,offW2+bp2*2,1)}drawScanlineText(cctx,offT,obX2,y2,ps2,'#000');drawScanlineText(cctx,onT,onbX2,y2,ps2,color)}else{drawScanlineText(cctx,offT,obX2,y2,ps2,color);cctx.fillStyle=color;for(let py=0;py<th2+bp2*2;py++){if(py%2===0)cctx.fillRect(onbX2-bp2,y2-bp2+py,onW2+bp2*2,1)}drawScanlineText(cctx,onT,onbX2,y2,ps2,'#000')};drawArrow('lb-prev','left');drawArrow('lb-next','right');const mt=['TRAINING 4X4','CHALLENGE 5X5','EXPERT 6X6'],mc=document.getElementById('lb-mode-title'),mctx=mc.getContext('2d');mctx.clearRect(0,0,280,mc.height);drawCenteredScanlineText(mctx,mt[currentLeaderboardMode],280,5,3,color);const lc=document.getElementById('leaderboard-list'),ctx=lc.getContext('2d');ctx.clearRect(0,0,380,350);drawCenteredScanlineText(ctx,'LOADING...',380,160,3,color);fetchLeaderboard().then(()=>{ctx.clearRect(0,0,380,350);const modeKey=leaderboardModes[currentLeaderboardMode]+(currentLeaderboardChrono?'_chrono':'');const scores=leaderboardData[modeKey]||[];if(scores.length===0){drawCenteredScanlineText(ctx,'NO SCORES YET',380,160,3,color)}else{scores.slice(0,10).forEach((e,i)=>{const y=10+i*34;drawScanlineText(ctx,(i+1)+'.',10,y,3,color);drawScanlineText(ctx,e.nickname,55,y,3,color);const st=formatScore(e.score),sw=getTextWidth(st,3);drawScanlineText(ctx,st,365-sw,y,3,color)})}});const bc=document.getElementById('leaderboard-back');bc.getContext('2d').clearRect(0,0,120,40);drawCenteredScanlineText(bc.getContext('2d'),'BACK',120,10,3,color)}
 
+function drawGameoverScreen(){const color=getColor();const tc=document.getElementById('gameover-title');tc.getContext('2d').clearRect(0,0,280,50);drawCenteredScanlineText(tc.getContext('2d'),'TIME UP',280,10,4,color);const sc=document.getElementById('gameover-score'),sctx=sc.getContext('2d');sctx.clearRect(0,0,380,120);drawCenteredScanlineText(sctx,formatScore(currentScore)+' PTS',380,20,4,color);drawCenteredScanlineText(sctx,puzzlesSolved+' PUZZLES',380,70,3,color);const rc=document.getElementById('gameover-restart');rc.getContext('2d').clearRect(0,0,200,45);drawCenteredScanlineText(rc.getContext('2d'),'RESTART',200,12,3,color);const mc=document.getElementById('gameover-menu');mc.getContext('2d').clearRect(0,0,120,45);drawCenteredScanlineText(mc.getContext('2d'),'MENU',120,12,3,color)}
+
 const LEADERBOARD_URL='https://script.google.com/macros/s/AKfycbzwwGm8kGbcjixpMpR3xhfH4gofyMPY1kXnPdcGzl4tnrJz7ewgVDH2J825Lhh93940/exec';
 async function fetchLeaderboard(){try{const r=await fetch(LEADERBOARD_URL,{method:'GET',redirect:'follow'}),d=await r.json();leaderboardData.training=(d.training||[]).sort((a,b)=>b.score-a.score);leaderboardData.challenge=(d.challenge||[]).sort((a,b)=>b.score-a.score);leaderboardData.expert=(d.expert||[]).sort((a,b)=>b.score-a.score);leaderboardData.training_chrono=(d.training_chrono||[]).sort((a,b)=>b.score-a.score);leaderboardData.challenge_chrono=(d.challenge_chrono||[]).sort((a,b)=>b.score-a.score);leaderboardData.expert_chrono=(d.expert_chrono||[]).sort((a,b)=>b.score-a.score)}catch(e){console.error('Leaderboard fetch error:',e)}}
 async function submitScore(score,mode){if(score<=0)return;try{const mn={4:'training',5:'challenge',6:'expert'};const modeStr=mn[mode]||'training';const finalMode=chronoEnabled?modeStr+'_chrono':modeStr;const p=new URLSearchParams({nickname:nickname,score:score,mode:finalMode}),url=LEADERBOARD_URL+'?action=submit&'+p.toString();await fetch(url,{method:'GET',redirect:'follow'})}catch(e){console.error('Score submit error:',e)}}
 
 function startChrono(){if(!chronoEnabled)return;chronoRemaining=chronoTime;chronoActive=true;chronoInterval=setInterval(()=>{chronoRemaining--;drawTimer();if(chronoRemaining<=0)endChrono()},1000)}
 function stopChrono(){if(chronoInterval){clearInterval(chronoInterval);chronoInterval=null}chronoActive=false}
-function endChrono(){stopChrono();if(currentScore>0)submitScore(currentScore,gridSize);setTimeout(()=>{alert('TIME UP!\n\nScore: '+formatScore(currentScore)+' PTS\nPuzzles: '+puzzlesSolved);bgMusic.pause();bgMusic.currentTime=0;musicStarted=false;document.getElementById('equalizer').classList.add('paused');currentScore=0;puzzlesSolved=0;showScreen('menu')},100)}
+function endChrono(){stopChrono();if(currentScore>0)submitScore(currentScore,gridSize);bgMusic.pause();bgMusic.currentTime=0;musicStarted=false;document.getElementById('equalizer').classList.add('paused');showScreen('gameover')}
 
 function generatePuzzle(){circles=[];for(let y=0;y<gridSize;y++){circles[y]=[];for(let x=0;x<gridSize;x++)circles[y][x]={filled:false,solution:Math.random()<0.35}}numbers=[];for(let y=0;y<gridSize-1;y++){numbers[y]=[];for(let x=0;x<gridSize-1;x++){let c=0;if(circles[y][x].solution)c++;if(circles[y][x+1].solution)c++;if(circles[y+1][x].solution)c++;if(circles[y+1][x+1].solution)c++;numbers[y][x]=c}}}
 
@@ -158,6 +168,8 @@ document.getElementById('hidden-input').addEventListener('blur',()=>{if(nickname
 document.getElementById('nickname-save').addEventListener('click',()=>{nickname=nicknameInput||'PLAYER';localStorage.setItem('musubi_nickname',nickname);stopNicknameInput();showScreen('menu')});
 document.getElementById('nickname-back').addEventListener('click',()=>{stopNicknameInput();showScreen('menu')});
 document.getElementById('leaderboard-back').addEventListener('click',()=>showScreen('menu'));
+document.getElementById('gameover-menu').addEventListener('click',()=>{currentScore=0;puzzlesSolved=0;showScreen('menu')});
+document.getElementById('gameover-restart').addEventListener('click',()=>{currentScore=0;puzzlesSolved=0;startGame(gridSize)});
 document.getElementById('puzzle-canvas').addEventListener('click',(e)=>{const canvas=document.getElementById('puzzle-canvas'),rect=canvas.getBoundingClientRect(),sx=canvas.width/rect.width,sy=canvas.height/rect.height,x=(e.clientX-rect.left)*sx,y=(e.clientY-rect.top)*sy,cs=canvas.width/gridSize,gx=Math.floor(x/cs),gy=Math.floor(y/cs);if(gx>=0&&gx<gridSize&&gy>=0&&gy<gridSize){circles[gy][gx].filled=!circles[gy][gx].filled;triggerCircleAnimation(gx,gy);drawPuzzle();if(checkWin()){const pts=gridSize*gridSize*100;currentScore+=pts;puzzlesSolved++;if(chronoEnabled&&chronoActive){const bonus={4:10,5:15,6:20};chronoRemaining+=bonus[gridSize]||10;drawTimer()}const mc=document.getElementById('mode-canvas'),ctx=mc.getContext('2d');ctx.clearRect(0,0,400,40);const mn={4:'Training',5:'Challenge',6:'Expert'},dt=mn[gridSize]+'  '+formatScore(currentScore)+' PTS';drawCenteredScanlineText(ctx,dt,400,10,3,getColor());setTimeout(()=>{generatePuzzle();drawPuzzle()},500)}}});
 function startGame(size){gridSize=size;currentScore=0;puzzlesSolved=0;generatePuzzle();showScreen('game');startMusicWithFade();if(chronoEnabled)startChrono()}
 
