@@ -373,6 +373,10 @@ let nickname = localStorage.getItem('musubi_nickname') || 'PLAYER';
 const themes = ['', 'theme-cyan', 'theme-amber', 'theme-white', 'theme-pink'];
 let currentTheme = 0;
 
+// Score system
+let currentScore = 0;
+let puzzlesSolved = 0;
+
 // Animation state
 let animations = [];
 
@@ -793,8 +797,9 @@ function drawGameScreen() {
     const ctx = modeCanvas.getContext('2d');
     ctx.clearRect(0, 0, 300, 40);
     
-    const modeNames = { 4: 'Training Mode', 5: 'Challenge Mode', 6: 'Expert Mode' };
-    drawCenteredScanlineText(ctx, modeNames[gridSize], 300, 10, 3, getColor());
+    const modeNames = { 4: 'Training', 5: 'Challenge', 6: 'Expert' };
+    const displayText = modeNames[gridSize] + '  ' + currentScore + ' PTS';
+    drawCenteredScanlineText(ctx, displayText, 300, 10, 3, getColor());
 }
 
 function drawHowtoScreen() {
@@ -862,24 +867,63 @@ function drawLeaderboardScreen() {
     const ctx = listCanvas.getContext('2d');
     ctx.clearRect(0, 0, 320, 400);
     
-    const scores = [
-        { rank: 1, name: 'MASTER', score: 12500 },
-        { rank: 2, name: 'PLAYER', score: 8400 },
-        { rank: 3, name: 'GAMER', score: 6200 },
-        { rank: 4, name: 'NOOB', score: 3100 },
-        { rank: 5, name: '---', score: 0 }
-    ];
+    // Afficher "Loading..."
+    drawCenteredScanlineText(ctx, 'LOADING...', 320, 180, 3, color);
     
-    scores.forEach((entry, i) => {
-        const y = 15 + i * 65;
-        drawScanlineText(ctx, entry.rank + '.', 10, y, 3, color);
-        drawScanlineText(ctx, entry.name, 60, y, 3, color);
-        drawScanlineText(ctx, entry.score.toString(), 220, y, 3, color);
+    // Charger les scores depuis Google Sheets
+    fetchLeaderboard().then(scores => {
+        ctx.clearRect(0, 0, 320, 400);
+        
+        if (scores.length === 0) {
+            drawCenteredScanlineText(ctx, 'NO SCORES YET', 320, 180, 3, color);
+        } else {
+            scores.forEach((entry, i) => {
+                const y = 15 + i * 38;
+                drawScanlineText(ctx, (i + 1) + '.', 10, y, 3, color);
+                drawScanlineText(ctx, entry.nickname, 50, y, 3, color);
+                drawScanlineText(ctx, entry.score.toString(), 240, y, 3, color);
+            });
+        }
     });
     
     const backCanvas = document.getElementById('leaderboard-back');
     backCanvas.getContext('2d').clearRect(0, 0, 120, 40);
     drawCenteredScanlineText(backCanvas.getContext('2d'), 'BACK', 120, 10, 3, color);
+}
+
+// ===== LEADERBOARD API =====
+const LEADERBOARD_URL = 'https://script.google.com/macros/s/AKfycbzwwGm8kGbcjixpMpR3xhfH4gofyMPY1kXnPdcGzl4tnrJz7ewgVDH2J825Lhh93940/exec';
+
+async function fetchLeaderboard() {
+    try {
+        const response = await fetch(LEADERBOARD_URL);
+        const data = await response.json();
+        // Combiner tous les modes et trier
+        const all = [...(data.training || []), ...(data.challenge || []), ...(data.expert || [])];
+        all.sort((a, b) => b.score - a.score);
+        return all.slice(0, 10);
+    } catch (e) {
+        console.error('Leaderboard fetch error:', e);
+        return [];
+    }
+}
+
+async function submitScore(score, mode) {
+    try {
+        const modeNames = { 4: 'training', 5: 'challenge', 6: 'expert' };
+        await fetch(LEADERBOARD_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nickname: nickname,
+                score: score,
+                mode: modeNames[mode]
+            })
+        });
+    } catch (e) {
+        console.error('Score submit error:', e);
+    }
 }
 
 // ===== PUZZLE =====
@@ -1082,7 +1126,15 @@ const iconStars = document.getElementById('icon-stars');
 const iconMusic = document.getElementById('icon-music');
 const iconHamburger = document.getElementById('icon-hamburger');
 
-if (iconHome) iconHome.addEventListener('click', () => showScreen('menu'));
+if (iconHome) iconHome.addEventListener('click', () => {
+    // Soumettre le score si on a joué
+    if (currentScore > 0) {
+        submitScore(currentScore, gridSize);
+        currentScore = 0;
+        puzzlesSolved = 0;
+    }
+    showScreen('menu');
+});
 if (iconStars) iconStars.addEventListener('click', () => {
     starsEnabled = !starsEnabled;
     drawIcon('icon-stars', 'stars', starsEnabled);
@@ -1133,6 +1185,11 @@ document.getElementById('puzzle-canvas').addEventListener('click', (e) => {
         drawPuzzle();
         
         if (checkWin()) {
+            // Calculer les points (plus de points pour les grandes grilles)
+            const points = gridSize * gridSize * 100;
+            currentScore += points;
+            puzzlesSolved++;
+            
             setTimeout(() => {
                 generatePuzzle();
                 drawPuzzle();
@@ -1143,6 +1200,8 @@ document.getElementById('puzzle-canvas').addEventListener('click', (e) => {
 
 function startGame(size) {
     gridSize = size;
+    currentScore = 0;
+    puzzlesSolved = 0;
     generatePuzzle();
     showScreen('game');
     // Démarrer la musique quand on lance une partie
