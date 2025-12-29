@@ -320,10 +320,12 @@
         <!-- DIFFICULTY -->
         <div id="difficulty-screen" class="screen">
             <canvas id="diff-title" width="300" height="50"></canvas>
-            <canvas class="menu-item" id="diff-training" width="340" height="45" style="margin-top: 40px;"></canvas>
-            <canvas class="menu-item" id="diff-challenge" width="360" height="45"></canvas>
-            <canvas class="menu-item" id="diff-expert" width="300" height="45"></canvas>
-            <canvas class="menu-item" id="diff-back" width="120" height="40" style="margin-top: 40px;"></canvas>
+            <div class="content">
+                <canvas class="menu-item" id="diff-training" width="340" height="45"></canvas>
+                <canvas class="menu-item" id="diff-challenge" width="360" height="45"></canvas>
+                <canvas class="menu-item" id="diff-expert" width="300" height="45"></canvas>
+            </div>
+            <canvas class="menu-item" id="diff-back" width="120" height="40"></canvas>
         </div>
 
         <!-- GAME -->
@@ -354,7 +356,7 @@
         <div id="howto-screen" class="screen">
             <canvas id="howto-title" width="280" height="50"></canvas>
             <div class="content">
-                <canvas id="howto-content" width="340" height="280"></canvas>
+                <canvas id="howto-content" width="340" height="320"></canvas>
             </div>
             <canvas class="menu-item" id="howto-back" width="120" height="40"></canvas>
         </div>
@@ -845,7 +847,7 @@ function drawHowtoScreen() {
     
     lines.forEach((line, i) => {
         if (line) {
-            drawCenteredScanlineText(ctx, line, 340, 10 + i * 32, 3, color);
+            drawCenteredScanlineText(ctx, line, 340, 5 + i * 34, 3, color);
         }
     });
     
