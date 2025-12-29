@@ -309,7 +309,7 @@
     <div id="game-container" style="display: none;">
         <!-- MENU -->
         <div id="menu-screen" class="screen active">
-            <img id="logo-img" src="" alt="MUSUBI">
+            <img id="logo-img" src="https://raw.githubusercontent.com/DNSZLSK/musubi/master/Images/musubi%20logo%204.png" alt="MUSUBI">
             <canvas class="menu-item" id="menu-newgame" width="220" height="45"></canvas>
             <canvas class="menu-item" id="menu-leaderboard" width="280" height="45"></canvas>
             <canvas class="menu-item" id="menu-nickname" width="320" height="45"></canvas>
@@ -1252,10 +1252,12 @@ function startGame(size) {
 // ===== AUDIO =====
 // Playlist de musiques
 const musicTracks = [
-    'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music1.mp3'
-    // Ajouter d'autres tracks ici quand tu les auras uploadées :
-    // 'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music2.mp3',
-    // 'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music3.mp3',
+    'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music1.mp3',
+    'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music2.mp3',
+    'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music3.mp3',
+    'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music4.mp3',
+    'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music5.mp3',
+    
 ];
 let currentTrack = 0;
 
@@ -1348,11 +1350,14 @@ function finishPreloader() {
     }, 300);
 }
 
-// Charger le logo
+// Charger le logo (déjà dans le HTML, on attend juste qu'il soit prêt)
 const logoImg = document.getElementById('logo-img');
-logoImg.onload = updateProgress;
-logoImg.onerror = updateProgress;
-logoImg.src = 'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Images/musubi%20logo%204.png';
+if (logoImg.complete) {
+    updateProgress();
+} else {
+    logoImg.onload = updateProgress;
+    logoImg.onerror = updateProgress;
+}
 
 // Charger la musique - plusieurs événements pour compatibilité mobile
 let musicLoaded = false;
