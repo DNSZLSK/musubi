@@ -266,7 +266,7 @@
         body.theme-white { --color: #bbb; --color-bright: #ddd; }
         body.theme-pink { --color: #c5c; --color-bright: #e7e; }
 
-        /* Preloader */
+        /* Preloader CRT Style */
         #preloader {
             position: fixed;
             top: 0;
@@ -281,36 +281,62 @@
             z-index: 9999;
         }
         
-        #preloader-text {
-            color: #5c5;
-            font-family: monospace;
-            font-size: 24px;
-            margin-bottom: 20px;
-            letter-spacing: 4px;
+        #preloader-canvas {
+            filter: drop-shadow(0 0 8px rgba(92, 204, 92, 0.5));
         }
         
-        #preloader-bar-container {
-            width: 200px;
-            height: 4px;
-            background: #222;
-            border: 1px solid #5c5;
-        }
-        
-        #preloader-bar {
-            width: 0%;
+        /* CRT screen effect overlay */
+        #preloader::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
             height: 100%;
-            background: #5c5;
-            transition: width 0.2s;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        /* CRT flicker */
+        #preloader::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(92, 204, 92, 0.03);
+            animation: flicker 0.15s infinite;
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        @keyframes flicker {
+            0% { opacity: 0.27; }
+            10% { opacity: 0.25; }
+            20% { opacity: 0.28; }
+            30% { opacity: 0.25; }
+            40% { opacity: 0.27; }
+            50% { opacity: 0.26; }
+            60% { opacity: 0.28; }
+            70% { opacity: 0.25; }
+            80% { opacity: 0.27; }
+            90% { opacity: 0.26; }
+            100% { opacity: 0.27; }
         }
     </style>
 </head>
 <body>
-    <!-- PRELOADER -->
+    <!-- PRELOADER CRT -->
     <div id="preloader">
-        <div id="preloader-text">LOADING...</div>
-        <div id="preloader-bar-container">
-            <div id="preloader-bar"></div>
-        </div>
+        <canvas id="preloader-canvas" width="300" height="120"></canvas>
     </div>
 
     <canvas id="stars-canvas"></canvas>
@@ -472,6 +498,7 @@ const BLOCK_FONT = {
     ':': ["00000","00100","00100","00000","00100","00100","00000"],
     '-': ["00000","00000","00000","11111","00000","00000","00000"],
     '.': ["00000","00000","00000","00000","00000","01100","01100"],
+    '%': ["11001","11010","00100","00100","00100","01011","10011"],
 };
 
 // Draw text with scanline effect
@@ -1394,36 +1421,118 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ===== PRELOADER =====
+// ===== CRT PRELOADER =====
 const preloader = document.getElementById('preloader');
-const preloaderBar = document.getElementById('preloader-bar');
+const preloaderCanvas = document.getElementById('preloader-canvas');
+const preloaderCtx = preloaderCanvas.getContext('2d');
 const gameContainer = document.getElementById('game-container');
 
 const assetsToLoad = 3; // logo + 2 sons
-
 let loadedCount = 0;
 let preloaderDone = false;
+let preloaderProgress = 0;
+let targetProgress = 0;
+
+// Draw the CRT-style preloader
+function drawPreloader() {
+    const color = '#5c5';
+    const w = preloaderCanvas.width;
+    const h = preloaderCanvas.height;
+    
+    preloaderCtx.clearRect(0, 0, w, h);
+    
+    // Draw "LOADING" text with scanlines
+    drawCenteredScanlineText(preloaderCtx, 'LOADING', w, 15, 4, color);
+    
+    // Draw percentage
+    const percent = Math.floor(preloaderProgress) + '%';
+    drawCenteredScanlineText(preloaderCtx, percent, w, 55, 3, color);
+    
+    // Draw progress bar container (pixelated border)
+    const barX = 30;
+    const barY = 85;
+    const barWidth = w - 60;
+    const barHeight = 16;
+    
+    // Outer border with scanlines
+    preloaderCtx.fillStyle = color;
+    // Top border
+    for (let py = 0; py < 2; py++) {
+        if (py % 2 === 0) {
+            preloaderCtx.fillRect(barX, barY + py, barWidth, 1);
+        }
+    }
+    // Bottom border
+    for (let py = 0; py < 2; py++) {
+        if (py % 2 === 0) {
+            preloaderCtx.fillRect(barX, barY + barHeight - 2 + py, barWidth, 1);
+        }
+    }
+    // Left border
+    for (let px = 0; px < 2; px++) {
+        for (let py = 0; py < barHeight; py++) {
+            if (py % 2 === 0) {
+                preloaderCtx.fillRect(barX + px, barY + py, 1, 1);
+            }
+        }
+    }
+    // Right border
+    for (let px = 0; px < 2; px++) {
+        for (let py = 0; py < barHeight; py++) {
+            if (py % 2 === 0) {
+                preloaderCtx.fillRect(barX + barWidth - 2 + px, barY + py, 1, 1);
+            }
+        }
+    }
+    
+    // Draw fill with scanlines
+    const fillWidth = Math.floor((barWidth - 8) * (preloaderProgress / 100));
+    if (fillWidth > 0) {
+        for (let py = 0; py < barHeight - 8; py++) {
+            if (py % 2 === 0) {
+                preloaderCtx.fillRect(barX + 4, barY + 4 + py, fillWidth, 1);
+            }
+        }
+    }
+    
+    // Animate towards target
+    if (preloaderProgress < targetProgress) {
+        preloaderProgress += 2;
+        if (preloaderProgress > targetProgress) preloaderProgress = targetProgress;
+    }
+    
+    if (!preloaderDone) {
+        requestAnimationFrame(drawPreloader);
+    }
+}
+
+// Start preloader animation
+drawPreloader();
 
 function updateProgress() {
     if (preloaderDone) return;
     loadedCount++;
-    const percent = (loadedCount / assetsToLoad) * 100;
-    preloaderBar.style.width = percent + '%';
+    targetProgress = (loadedCount / assetsToLoad) * 100;
     
     if (loadedCount >= assetsToLoad) {
-        finishPreloader();
+        targetProgress = 100;
+        setTimeout(finishPreloader, 500);
     }
 }
 
 function finishPreloader() {
     if (preloaderDone) return;
     preloaderDone = true;
-    preloaderBar.style.width = '100%';
+    
+    // Fade out effect
+    preloader.style.transition = 'opacity 0.5s';
+    preloader.style.opacity = '0';
+    
     setTimeout(() => {
         preloader.style.display = 'none';
         gameContainer.style.display = 'flex';
         drawMenuScreen();
-    }, 300);
+    }, 500);
 }
 
 // Charger le logo (déjà dans le HTML, on attend juste qu'il soit prêt)
@@ -1463,7 +1572,8 @@ beepSound.onerror = onBeepLoad;
 setTimeout(() => {
     if (!preloaderDone) {
         console.log('Preloader timeout - forcing start');
-        finishPreloader();
+        targetProgress = 100;
+        setTimeout(finishPreloader, 300);
     }
 }, 5000);
 </script>
