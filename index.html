@@ -943,12 +943,16 @@ async function submitScore(score, mode) {
             mode: modeNames[mode] || 'training'
         });
         
+        const url = LEADERBOARD_URL + '?action=submit&' + params.toString();
+        console.log('Submitting score to:', url);
+        
         // Utiliser GET avec params pour contourner CORS
-        await fetch(LEADERBOARD_URL + '?action=submit&' + params.toString(), {
+        const response = await fetch(url, {
             method: 'GET',
             redirect: 'follow'
         });
-        console.log('Score submitted:', score, nickname);
+        const result = await response.text();
+        console.log('Score submitted:', score, nickname, 'Response:', result);
     } catch (e) {
         console.error('Score submit error:', e);
     }
@@ -1161,6 +1165,13 @@ if (iconHome) iconHome.addEventListener('click', () => {
         currentScore = 0;
         puzzlesSolved = 0;
     }
+    // Arrêter la musique
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+    musicStarted = false;
+    const eq = document.getElementById('equalizer');
+    if (eq) eq.classList.add('paused');
+    
     showScreen('menu');
 });
 if (iconStars) iconStars.addEventListener('click', () => {
