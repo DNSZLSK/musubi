@@ -735,19 +735,9 @@ function drawIcon(canvasId, type, active = true) {
 }
 
 function drawAllIcons() {
-    if (iconsVisible) {
-        drawIcon('icon-stars', 'stars', starsEnabled);
-        drawIcon('icon-music', 'music', true);
-        drawIcon('icon-home', 'home', true);
-        drawIcon('icon-hamburger', 'hamburger', true);
-    } else {
-        // Only show hamburger when icons hidden
-        ['icon-stars', 'icon-music', 'icon-home'].forEach(id => {
-            const canvas = document.getElementById(id);
-            if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-        });
-        drawIcon('icon-hamburger', 'hamburger', true);
-    }
+    drawIcon('icon-stars', 'stars', starsEnabled);
+    drawIcon('icon-music', 'music', !musicMuted);
+    drawIcon('icon-home', 'home', true);
 }
 
 // ===== SCREENS =====
@@ -1256,8 +1246,7 @@ const musicTracks = [
     'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music2.mp3',
     'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music3.mp3',
     'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music4.mp3',
-    'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music5.mp3',
-    
+    'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music5.mp3'
 ];
 let currentTrack = 0;
 
@@ -1266,14 +1255,47 @@ bgMusic.loop = true;
 bgMusic.volume = 0.5;
 
 const beepSound = new Audio('https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/beepMenuChoice.mp3');
-beepSound.volume = 0.0;
+beepSound.volume = 0.3;
+
+// Web Audio API pour moins de latence sur mobile
+let audioContext = null;
+let beepBuffer = null;
+
+async function initAudioContext() {
+    if (audioContext) return;
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const response = await fetch('https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/beepMenuChoice.mp3');
+        const arrayBuffer = await response.arrayBuffer();
+        beepBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    } catch (e) {
+        console.log('Web Audio API not available, using fallback');
+    }
+}
 
 let musicStarted = false;
 
 function playBeep() {
-    beepSound.currentTime = 0;
-    beepSound.play().catch(() => {});
+    // Utiliser Web Audio API si disponible (plus rapide)
+    if (audioContext && beepBuffer) {
+        const source = audioContext.createBufferSource();
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 0.3;
+        source.buffer = beepBuffer;
+        source.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        source.start(0);
+    } else {
+        // Fallback sur Audio standard
+        beepSound.currentTime = 0;
+        beepSound.play().catch(() => {});
+    }
 }
+
+// Initialiser l'audio au premier clic (requis sur mobile)
+document.addEventListener('click', () => {
+    initAudioContext();
+}, { once: true });
 
 function nextTrack() {
     if (musicTracks.length <= 1) return;
