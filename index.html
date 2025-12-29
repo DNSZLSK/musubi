@@ -1305,26 +1305,31 @@ const preloader = document.getElementById('preloader');
 const preloaderBar = document.getElementById('preloader-bar');
 const gameContainer = document.getElementById('game-container');
 
-const assetsToLoad = [
-    { type: 'image', src: 'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Images/musubi%20logo%204.png' },
-    { type: 'audio', src: 'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music1.mp3' },
-    { type: 'audio', src: 'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/beepMenuChoice.mp3' }
-];
+const assetsToLoad = 3; // logo + 2 sons
 
 let loadedCount = 0;
+let preloaderDone = false;
 
 function updateProgress() {
+    if (preloaderDone) return;
     loadedCount++;
-    const percent = (loadedCount / assetsToLoad.length) * 100;
+    const percent = (loadedCount / assetsToLoad) * 100;
     preloaderBar.style.width = percent + '%';
     
-    if (loadedCount >= assetsToLoad.length) {
-        setTimeout(() => {
-            preloader.style.display = 'none';
-            gameContainer.style.display = 'flex';
-            drawMenuScreen();
-        }, 300);
+    if (loadedCount >= assetsToLoad) {
+        finishPreloader();
     }
+}
+
+function finishPreloader() {
+    if (preloaderDone) return;
+    preloaderDone = true;
+    preloaderBar.style.width = '100%';
+    setTimeout(() => {
+        preloader.style.display = 'none';
+        gameContainer.style.display = 'flex';
+        drawMenuScreen();
+    }, 300);
 }
 
 // Charger le logo
@@ -1333,13 +1338,37 @@ logoImg.onload = updateProgress;
 logoImg.onerror = updateProgress;
 logoImg.src = 'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Images/musubi%20logo%204.png';
 
-// Charger la musique
-bgMusic.oncanplaythrough = updateProgress;
-bgMusic.onerror = updateProgress;
+// Charger la musique - plusieurs événements pour compatibilité mobile
+let musicLoaded = false;
+function onMusicLoad() {
+    if (!musicLoaded) {
+        musicLoaded = true;
+        updateProgress();
+    }
+}
+bgMusic.oncanplaythrough = onMusicLoad;
+bgMusic.onloadeddata = onMusicLoad;
+bgMusic.onerror = onMusicLoad;
 
 // Charger le beep
-beepSound.oncanplaythrough = updateProgress;
-beepSound.onerror = updateProgress;
+let beepLoaded = false;
+function onBeepLoad() {
+    if (!beepLoaded) {
+        beepLoaded = true;
+        updateProgress();
+    }
+}
+beepSound.oncanplaythrough = onBeepLoad;
+beepSound.onloadeddata = onBeepLoad;
+beepSound.onerror = onBeepLoad;
+
+// Timeout de sécurité - si après 5 secondes c'est pas chargé, on lance quand même
+setTimeout(() => {
+    if (!preloaderDone) {
+        console.log('Preloader timeout - forcing start');
+        finishPreloader();
+    }
+}, 5000);
 </script>
 </body>
 </html>
