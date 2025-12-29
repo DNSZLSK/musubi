@@ -117,15 +117,57 @@
         #game-screen {
             padding: 20px;
             justify-content: flex-start;
-            padding-top: 30px;
+            padding-top: 80px;
+        }
+
+        #top-bar {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         #top-icons {
             display: flex;
-            justify-content: center;
-            gap: 25px;
-            width: 100%;
-            margin-bottom: 20px;
+            gap: 15px;
+        }
+
+        #top-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Equalizer */
+        #equalizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 25px;
+        }
+
+        #equalizer.paused .eq-bar {
+            animation-play-state: paused;
+            height: 5px !important;
+        }
+
+        .eq-bar {
+            width: 4px;
+            background: var(--color);
+            animation: equalize 0.8s ease-in-out infinite;
+        }
+
+        .eq-bar:nth-child(1) { animation-delay: 0s; }
+        .eq-bar:nth-child(2) { animation-delay: 0.2s; }
+        .eq-bar:nth-child(3) { animation-delay: 0.4s; }
+        .eq-bar:nth-child(4) { animation-delay: 0.1s; }
+
+        @keyframes equalize {
+            0%, 100% { height: 5px; }
+            50% { height: 20px; }
         }
 
         .top-icon {
@@ -274,11 +316,21 @@
 
         <!-- GAME -->
         <div id="game-screen" class="screen">
-            <div id="top-icons">
-                <canvas class="top-icon" id="icon-stars" width="50" height="45" title="Toggle stars"></canvas>
-                <canvas class="top-icon" id="icon-music" width="50" height="45" title="Next music"></canvas>
-                <canvas class="top-icon" id="icon-home" width="50" height="45" title="Menu"></canvas>
-                <canvas class="top-icon" id="icon-hamburger" width="50" height="45" title="Options"></canvas>
+            <div id="top-bar">
+                <div id="top-icons">
+                    <canvas class="top-icon" id="icon-stars" width="50" height="45" title="Toggle stars"></canvas>
+                    <canvas class="top-icon" id="icon-music" width="50" height="45" title="Mute/Unmute"></canvas>
+                    <canvas class="top-icon" id="icon-home" width="50" height="45" title="Menu"></canvas>
+                </div>
+                <div id="top-right">
+                    <div id="equalizer" class="paused">
+                        <div class="eq-bar"></div>
+                        <div class="eq-bar"></div>
+                        <div class="eq-bar"></div>
+                        <div class="eq-bar"></div>
+                    </div>
+                    <canvas class="top-icon" id="icon-hamburger" width="50" height="45" title="Options"></canvas>
+                </div>
             </div>
             <div id="puzzle-container">
                 <canvas id="puzzle-canvas" width="340" height="340"></canvas>
@@ -1039,6 +1091,15 @@ if (iconMusic) iconMusic.addEventListener('click', () => {
     musicMuted = !musicMuted;
     bgMusic.muted = musicMuted;
     drawIcon('icon-music', 'music', !musicMuted);
+    // Contrôler l'equalizer
+    const eq = document.getElementById('equalizer');
+    if (eq) {
+        if (musicMuted) {
+            eq.classList.add('paused');
+        } else {
+            eq.classList.remove('paused');
+        }
+    }
 });
 if (iconHamburger) iconHamburger.addEventListener('click', () => {
     iconsVisible = !iconsVisible;
@@ -1084,6 +1145,8 @@ function startGame(size) {
     gridSize = size;
     generatePuzzle();
     showScreen('game');
+    // Démarrer la musique quand on lance une partie
+    startMusicWithFade();
 }
 
 // ===== AUDIO =====
@@ -1106,6 +1169,9 @@ function startMusicWithFade() {
         bgMusic.volume = 0;
         bgMusic.play().then(() => {
             musicStarted = true;
+            // Activer l'equalizer
+            const eq = document.getElementById('equalizer');
+            if (eq && !musicMuted) eq.classList.remove('paused');
             // Fondu de 0 à 0.5 en 2 secondes
             let vol = 0;
             const fadeIn = setInterval(() => {
@@ -1116,20 +1182,12 @@ function startMusicWithFade() {
                 }
                 if (!musicMuted) bgMusic.volume = vol;
             }, 80);
-        }).catch(() => {
-            // Autoplay bloqué, on attend un clic
-            console.log('Autoplay blocked, waiting for user interaction');
-        });
+        }).catch(() => {});
     }
 }
 
 // Ajouter le beep à tous les clics sur menu-item
 document.addEventListener('click', (e) => {
-    // Démarrer la musique au premier clic si pas encore démarrée
-    if (!musicStarted) {
-        startMusicWithFade();
-    }
-    
     // Jouer le beep sur les éléments cliquables
     if (e.target.classList.contains('menu-item') || e.target.classList.contains('top-icon')) {
         playBeep();
@@ -1159,8 +1217,6 @@ function updateProgress() {
             preloader.style.display = 'none';
             gameContainer.style.display = 'flex';
             drawMenuScreen();
-            // Démarrer la musique en fondu après le loader
-            startMusicWithFade();
         }, 300);
     }
 }
