@@ -337,13 +337,12 @@
                     <canvas class="top-icon" id="icon-home" width="50" height="45" title="Menu"></canvas>
                 </div>
                 <div id="top-right">
-                    <div id="equalizer" class="paused">
+                    <div id="equalizer" class="paused" title="Next track" style="cursor: pointer;">
                         <div class="eq-bar"></div>
                         <div class="eq-bar"></div>
                         <div class="eq-bar"></div>
                         <div class="eq-bar"></div>
                     </div>
-                    <canvas class="top-icon" id="icon-hamburger" width="50" height="45" title="Options"></canvas>
                 </div>
             </div>
             <div id="puzzle-container">
@@ -375,7 +374,7 @@
         <div id="leaderboard-screen" class="screen">
             <canvas id="leaderboard-title" width="300" height="50"></canvas>
             <div class="content">
-                <canvas id="leaderboard-list" width="320" height="380"></canvas>
+                <canvas id="leaderboard-list" width="380" height="380"></canvas>
             </div>
             <canvas class="menu-item" id="leaderboard-back" width="120" height="40"></canvas>
         </div>
@@ -384,7 +383,7 @@
 <script>
 // ===== GLOBAL VARIABLES =====
 let starsEnabled = true;
-let iconsVisible = false;
+let iconsVisible = true;
 let musicMuted = false;
 let gridSize = 4;
 let circles = [];
@@ -885,23 +884,23 @@ function drawLeaderboardScreen() {
     
     const listCanvas = document.getElementById('leaderboard-list');
     const ctx = listCanvas.getContext('2d');
-    ctx.clearRect(0, 0, 320, 400);
+    ctx.clearRect(0, 0, 380, 400);
     
     // Afficher "Loading..."
-    drawCenteredScanlineText(ctx, 'LOADING...', 320, 180, 3, color);
+    drawCenteredScanlineText(ctx, 'LOADING...', 380, 180, 3, color);
     
     // Charger les scores depuis Google Sheets
     fetchLeaderboard().then(scores => {
-        ctx.clearRect(0, 0, 320, 400);
+        ctx.clearRect(0, 0, 380, 400);
         
         if (scores.length === 0) {
-            drawCenteredScanlineText(ctx, 'NO SCORES YET', 320, 180, 3, color);
+            drawCenteredScanlineText(ctx, 'NO SCORES YET', 380, 180, 3, color);
         } else {
             scores.forEach((entry, i) => {
                 const y = 15 + i * 38;
                 drawScanlineText(ctx, (i + 1) + '.', 10, y, 3, color);
-                drawScanlineText(ctx, entry.nickname, 50, y, 3, color);
-                drawScanlineText(ctx, entry.score.toString(), 240, y, 3, color);
+                drawScanlineText(ctx, entry.nickname, 60, y, 3, color);
+                drawScanlineText(ctx, entry.score.toString(), 280, y, 3, color);
             });
         }
     });
@@ -1156,7 +1155,6 @@ document.getElementById('diff-back').addEventListener('click', () => showScreen(
 const iconHome = document.getElementById('icon-home');
 const iconStars = document.getElementById('icon-stars');
 const iconMusic = document.getElementById('icon-music');
-const iconHamburger = document.getElementById('icon-hamburger');
 
 if (iconHome) iconHome.addEventListener('click', () => {
     // Soumettre le score si on a joué
@@ -1191,10 +1189,6 @@ if (iconMusic) iconMusic.addEventListener('click', () => {
             eq.classList.remove('paused');
         }
     }
-});
-if (iconHamburger) iconHamburger.addEventListener('click', () => {
-    iconsVisible = !iconsVisible;
-    drawAllIcons();
 });
 
 document.getElementById('howto-back').addEventListener('click', () => showScreen('menu'));
@@ -1256,7 +1250,16 @@ function startGame(size) {
 }
 
 // ===== AUDIO =====
-const bgMusic = new Audio('https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music1.mp3');
+// Playlist de musiques
+const musicTracks = [
+    'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music1.mp3'
+    // Ajouter d'autres tracks ici quand tu les auras uploadées :
+    // 'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music2.mp3',
+    // 'https://raw.githubusercontent.com/DNSZLSK/musubi/master/Music/Music3.mp3',
+];
+let currentTrack = 0;
+
+const bgMusic = new Audio(musicTracks[0]);
 bgMusic.loop = true;
 bgMusic.volume = 0.5;
 
@@ -1268,6 +1271,14 @@ let musicStarted = false;
 function playBeep() {
     beepSound.currentTime = 0;
     beepSound.play().catch(() => {});
+}
+
+function nextTrack() {
+    if (musicTracks.length <= 1) return;
+    
+    currentTrack = (currentTrack + 1) % musicTracks.length;
+    bgMusic.src = musicTracks[currentTrack];
+    bgMusic.play().catch(() => {});
 }
 
 function startMusicWithFade() {
@@ -1291,6 +1302,11 @@ function startMusicWithFade() {
         }).catch(() => {});
     }
 }
+
+// Clic sur l'equalizer = musique suivante
+document.getElementById('equalizer').addEventListener('click', () => {
+    nextTrack();
+});
 
 // Ajouter le beep à tous les clics sur menu-item
 document.addEventListener('click', (e) => {
