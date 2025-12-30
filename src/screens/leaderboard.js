@@ -95,8 +95,8 @@ async function drawScoresList() {
     }
 
     // Layout: rang aligné à droite sur 40px, puis nickname, puis score aligné à droite
-    const rankEndX = 40;      // Position fin du rang
-    const nicknameX = 50;     // Position début nickname
+    const rankEndX = 55;      // Position fin du rang
+    const nicknameX = 65;     // Position début nickname
     const scoreEndX = 365;    // Position fin du score
 
     scores.slice(0, 10).forEach((entry, index) => {
