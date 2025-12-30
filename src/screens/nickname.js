@@ -12,6 +12,9 @@ import { drawCenteredText } from '../renderer/scanline.js';
 export function drawNicknameScreen() {
     const color = getColor();
 
+    // Recharge le nickname depuis le state (qui vient du localStorage)
+    state.nicknameInput = state.nickname;
+
     // Titre
     const titleCanvas = document.getElementById('nickname-title');
     if (titleCanvas) {
@@ -111,7 +114,8 @@ export function handleNicknameInput(value) {
  * Sauvegarde le nickname
  */
 export function saveCurrentNickname() {
-    saveNickname(state.nicknameInput);
+    const nameToSave = state.nicknameInput || 'PLAYER';
+    saveNickname(nameToSave);
     stopNicknameInput();
     showSavedMessage();
 }
@@ -126,9 +130,9 @@ function showSavedMessage() {
     const ctx = saveCanvas.getContext('2d');
     const color = getColor();
 
-    // Affiche "SAVED!"
+    // Affiche "OK!" (plus court pour éviter le décalage)
     ctx.clearRect(0, 0, saveCanvas.width, saveCanvas.height);
-    drawCenteredText(ctx, 'SAVED!', saveCanvas.width, 10, 3, color);
+    drawCenteredText(ctx, 'OK!', saveCanvas.width, 10, 3, color);
 
     // Revient à "SAVE" après 1.5 secondes
     setTimeout(() => {
