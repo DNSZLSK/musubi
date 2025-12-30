@@ -112,7 +112,8 @@ function setupEventListeners() {
     });
     document.getElementById('nickname-save')?.addEventListener('click', () => {
         saveCurrentNickname();
-        showScreen('menu');
+        // Attend 1.5s pour montrer "SAVED!" avant de revenir au menu
+        setTimeout(() => showScreen('menu'), 1500);
     });
     document.getElementById('nickname-back')?.addEventListener('click', () => {
         stopNicknameInput();
