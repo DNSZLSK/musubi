@@ -52,7 +52,7 @@ export function drawNicknameInput() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const displayText = state.nicknameInput || 'PLAYER';
+    const displayText = state.nicknameInput || state.nickname || 'PLAYER';
     drawCenteredText(ctx, displayText, canvas.width, 15, 3, color);
 
     // Ligne de soulignement
@@ -113,4 +113,26 @@ export function handleNicknameInput(value) {
 export function saveCurrentNickname() {
     saveNickname(state.nicknameInput);
     stopNicknameInput();
+    showSavedMessage();
+}
+
+/**
+ * Affiche le message "SAVED!" temporairement
+ */
+function showSavedMessage() {
+    const saveCanvas = document.getElementById('nickname-save');
+    if (!saveCanvas) return;
+
+    const ctx = saveCanvas.getContext('2d');
+    const color = getColor();
+
+    // Affiche "SAVED!"
+    ctx.clearRect(0, 0, saveCanvas.width, saveCanvas.height);
+    drawCenteredText(ctx, 'SAVED!', saveCanvas.width, 10, 3, color);
+
+    // Revient à "SAVE" après 1.5 secondes
+    setTimeout(() => {
+        ctx.clearRect(0, 0, saveCanvas.width, saveCanvas.height);
+        drawCenteredText(ctx, 'SAVE', saveCanvas.width, 10, 3, color);
+    }, 1500);
 }

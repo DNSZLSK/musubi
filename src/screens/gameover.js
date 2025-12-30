@@ -5,6 +5,7 @@
 import { state, resetGame, resetChrono } from '../state.js';
 import { getColor, formatScore } from '../utils.js';
 import { drawCenteredText } from '../renderer/scanline.js';
+import { saveScore } from '../api/leaderboard.js';
 
 /**
  * Dessine l'écran de game over
@@ -50,6 +51,11 @@ export function drawGameoverScreen() {
         const ctx = menuCanvas.getContext('2d');
         ctx.clearRect(0, 0, menuCanvas.width, menuCanvas.height);
         drawCenteredText(ctx, 'MENU', menuCanvas.width, 12, 3, color);
+    }
+
+    // Sauvegarder le score automatiquement quand l'écran s'affiche
+    if (state.currentScore > 0) {
+        saveScore(state.currentScore);
     }
 }
 
