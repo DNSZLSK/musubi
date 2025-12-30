@@ -70,11 +70,11 @@ export function drawNicknameInput() {
  */
 export function startNicknameInput() {
     state.nicknameActive = true;
-    state.nicknameInput = state.nickname === 'PLAYER' ? '' : state.nickname;
+    state.nicknameInput = '';
 
     const hiddenInput = document.getElementById('hidden-input');
     if (hiddenInput) {
-        hiddenInput.value = state.nicknameInput;
+        hiddenInput.value = '';
         hiddenInput.focus();
     }
 
@@ -132,7 +132,7 @@ function showSavedMessage() {
 
     // Affiche "OK!" (plus court pour éviter le décalage)
     ctx.clearRect(0, 0, saveCanvas.width, saveCanvas.height);
-    drawCenteredText(ctx, 'OK!', saveCanvas.width, 10, 3, color);
+    drawCenteredText(ctx, 'DONE', saveCanvas.width, 10, 3, color);
 
     // Revient à "SAVE" après 1.5 secondes
     setTimeout(() => {
