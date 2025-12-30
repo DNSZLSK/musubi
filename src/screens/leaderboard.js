@@ -98,15 +98,16 @@ async function drawScoresList() {
         const y = 10 + index * 34;
 
         // Position
-        drawScanlineText(ctx, `${index + 1}.`, 10, y, 3, color);
+        const rank = `${index + 1}.`;
+        drawScanlineText(ctx, rank, 10, y, 3, color);
 
-        // Nickname
-        drawScanlineText(ctx, entry.nickname, 55, y, 3, color);
+        // Nickname (décalé pour laisser place au "10.")
+        drawScanlineText(ctx, entry.nickname, 70, y, 3, color);
 
         // Score (aligné à droite)
         const scoreText = formatScore(entry.score);
         const scoreWidth = getTextWidth(scoreText, 3);
-        drawScanlineText(ctx, scoreText, 380 - scoreWidth, y, 3, color);
+        drawScanlineText(ctx, scoreText, 365 - scoreWidth, y, 3, color);
     });
 }
 
