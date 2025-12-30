@@ -9,15 +9,10 @@
     box-sizing: border-box;
 }
 
-html {
-    height: 100%;
-}
-
 body {
     background: #000;
     overflow: hidden;
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -96,8 +91,6 @@ body.theme-pink {
 #menu-screen {
     justify-content: center;
     gap: 5px;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
 }
 
 #difficulty-screen,
@@ -106,9 +99,7 @@ body.theme-pink {
 #leaderboard-screen,
 #gameover-screen {
     justify-content: space-between;
-    padding: 40px 20px 20px;
-    padding-top: calc(40px + env(safe-area-inset-top));
-    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    padding: 60px 20px 40px;
 }
 
 .content {
@@ -145,7 +136,6 @@ body.theme-pink #logo-img {
 #credits-footer {
     position: absolute;
     bottom: 15px;
-    bottom: calc(15px + env(safe-area-inset-bottom));
     font-family: monospace;
     font-size: 10px;
     color: #333;
@@ -176,13 +166,12 @@ body.theme-pink #logo-img {
 #game-screen {
     padding: 20px;
     justify-content: flex-start;
-    padding-top: calc(60px + env(safe-area-inset-top));
+    padding-top: 80px;
 }
 
 #top-bar {
     position: absolute;
     top: 15px;
-    top: calc(15px + env(safe-area-inset-top));
     left: 15px;
     right: 15px;
     display: flex;
