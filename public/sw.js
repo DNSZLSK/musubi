@@ -1,4 +1,4 @@
-const CACHE_NAME = 'musubi-v2';
+const CACHE_NAME = 'musubi-v3';
 const urlsToCache = [
     '/musubi/',
     '/musubi/index.html',
