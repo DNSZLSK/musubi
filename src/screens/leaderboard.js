@@ -106,7 +106,7 @@ async function drawScoresList() {
         // Score (aligné à droite)
         const scoreText = formatScore(entry.score);
         const scoreWidth = getTextWidth(scoreText, 3);
-        drawScanlineText(ctx, scoreText, 365 - scoreWidth, y, 3, color);
+        drawScanlineText(ctx, scoreText, 380 - scoreWidth, y, 3, color);
     });
 }
 
