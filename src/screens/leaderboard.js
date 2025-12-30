@@ -95,7 +95,7 @@ async function drawScoresList() {
     }
 
     scores.slice(0, 10).forEach((entry, index) => {
-        const y = 10 + index * 36;
+        const y = 10 + index * 34;
 
         // Position
         drawScanlineText(ctx, `${index + 1}.`, 10, y, 3, color);
@@ -106,7 +106,7 @@ async function drawScoresList() {
         // Score (aligné à droite)
         const scoreText = formatScore(entry.score);
         const scoreWidth = getTextWidth(scoreText, 3);
-        drawScanlineText(ctx, scoreText, 300 - scoreWidth, y, 3, color);
+        drawScanlineText(ctx, scoreText, 365 - scoreWidth, y, 3, color);
     });
 }
 
