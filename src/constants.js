@@ -76,13 +76,13 @@ export const LEADERBOARD_URL =
 // URLs des assets audio
 export const AUDIO_CONFIG = {
     musicTracks: [
-        '/Music/Music1.mp3',
-        '/Music/Music2.mp3',
-        '/Music/Music3.mp3',
-        '/Music/Music4.mp3',
-        '/Music/Music5.mp3'
+        '/musubi/Music/Music1.mp3',
+        '/musubi/Music/Music2.mp3',
+        '/musubi/Music/Music3.mp3',
+        '/musubi/Music/Music4.mp3',
+        '/musubi/Music/Music5.mp3'
     ],
-    beepSound: '/Music/beepMenuChoice.mp3',
+    beepSound: '/musubi/Music/beepMenuChoice.mp3',
     defaultVolume: 0.5,
     beepVolume: 0.3
 };
