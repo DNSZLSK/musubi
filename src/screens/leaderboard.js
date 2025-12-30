@@ -94,20 +94,30 @@ async function drawScoresList() {
         return;
     }
 
+    // Layout: rang aligné à droite sur 40px, puis nickname, puis score aligné à droite
+    const rankEndX = 40;      // Position fin du rang
+    const nicknameX = 50;     // Position début nickname
+    const scoreEndX = 365;    // Position fin du score
+
     scores.slice(0, 10).forEach((entry, index) => {
         const y = 10 + index * 34;
 
-        // Position
+        // Rang (aligné à droite)
         const rank = `${index + 1}.`;
-        drawScanlineText(ctx, rank, 10, y, 3, color);
+        const rankWidth = getTextWidth(rank, 3);
+        drawScanlineText(ctx, rank, rankEndX - rankWidth, y, 3, color);
 
-        // Nickname (décalé pour laisser place au "10.")
-        drawScanlineText(ctx, entry.nickname, 70, y, 3, color);
+        // Nickname (tronqué si trop long)
+        const maxNicknameLength = 10;
+        const nickname = entry.nickname.length > maxNicknameLength 
+            ? entry.nickname.substring(0, maxNicknameLength) 
+            : entry.nickname;
+        drawScanlineText(ctx, nickname, nicknameX, y, 3, color);
 
         // Score (aligné à droite)
         const scoreText = formatScore(entry.score);
         const scoreWidth = getTextWidth(scoreText, 3);
-        drawScanlineText(ctx, scoreText, 365 - scoreWidth, y, 3, color);
+        drawScanlineText(ctx, scoreText, scoreEndX - scoreWidth, y, 3, color);
     });
 }
 
