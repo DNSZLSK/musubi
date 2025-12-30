@@ -54,6 +54,8 @@ export async function submitScore(score, gridSize) {
         const modeStr = modeNames[gridSize] || 'training';
         const finalMode = state.chronoEnabled ? `${modeStr}_chrono` : modeStr;
 
+        console.log('Submit score:', { score, gridSize, chronoEnabled: state.chronoEnabled, finalMode, nickname: state.nickname });
+
         const params = new URLSearchParams({
             action: 'submit',
             nickname: state.nickname,
@@ -62,7 +64,10 @@ export async function submitScore(score, gridSize) {
         });
 
         const url = `${LEADERBOARD_URL}?${params.toString()}`;
-        await fetch(url, { method: 'GET', redirect: 'follow' });
+        console.log('URL:', url);
+        
+        const response = await fetch(url, { method: 'GET', redirect: 'follow' });
+        console.log('Response:', response.status);
 
         return true;
     } catch (error) {
