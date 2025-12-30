@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MUSUBI</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAuElEQVR4nGNgGAVDHfDL8f+nRD8jrSz7+OgjUWYT7YCUOykk+3SOyhyC5hNUQI7FpDiEidaWEzIHp8soTVzYALZ0gTcE6AGwhgC1gh4bQE8PGCFAS8uxmT/4ooAWiQ8dICfGAQ8BFnSB0H2hNLd0jsocOBslBGidALHZg+IAYspuagBke0YT4eBKhAMBMBxA64SIbv5odYw3uKlZMOGKWrwhQK30gM+cwd8qRga06BdQDOhRdA9vAABjbkwqWmLx7QAAAABJRU5ErkJggg==">
+    
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="MUSUBI">
+    <meta property="og:description" content="A retro logic puzzle game. Fill the circles to match the numbers!">
+    <meta property="og:image" content="https://raw.githubusercontent.com/DNSZLSK/musubi/master/public/Images/musubi%20logo%204.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MUSUBI">
+    <meta name="twitter:description" content="A retro logic puzzle game. Fill the circles to match the numbers!">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/musubi/manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MUSUBI">
+    <link rel="apple-touch-icon" href="/musubi/Images/icon-192.png">
+  <script type="module" crossorigin src="/musubi/assets/index-DNt5Ricr.js"></script>
+  <link rel="stylesheet" crossorigin href="/musubi/assets/index-C4-3ygP5.css">
+</head>
+<body>
+    <!-- Hidden input for mobile keyboard -->
+    <input type="text" id="hidden-input" maxlength="10" autocomplete="off">
+    
+    <!-- Preloader -->
+    <div id="preloader">
+        <canvas id="preloader-canvas" width="300" height="120"></canvas>
+    </div>
+
+    <!-- Stars background -->
+    <canvas id="stars-canvas"></canvas>
+
+    <!-- Game container -->
+    <div id="game-container" style="display:none;">
+        
+        <!-- MENU SCREEN -->
+        <div id="menu-screen" class="screen active">
+            <img id="logo-img" src="https://raw.githubusercontent.com/DNSZLSK/musubi/master/public/Images/musubi%20logo%204.png" alt="MUSUBI">
+            <canvas class="menu-item" id="menu-newgame" width="220" height="45"></canvas>
+            <canvas class="menu-item" id="menu-leaderboard" width="280" height="45"></canvas>
+            <canvas class="menu-item" id="menu-nickname" width="320" height="45"></canvas>
+            <canvas class="menu-item" id="menu-howto" width="260" height="45"></canvas>
+            <canvas class="menu-item" id="menu-color" width="160" height="45" style="margin-top:15px;"></canvas>
+            <div id="credits-footer">Inspired by Glyn</div>
+        </div>
+
+        <!-- DIFFICULTY SCREEN -->
+        <div id="difficulty-screen" class="screen">
+            <canvas id="diff-title" width="300" height="50"></canvas>
+            <div class="content">
+                <canvas class="menu-item" id="chrono-toggle" width="340" height="45"></canvas>
+                <canvas class="menu-item" id="diff-training" width="340" height="45"></canvas>
+                <canvas class="menu-item" id="diff-challenge" width="360" height="45"></canvas>
+                <canvas class="menu-item" id="diff-expert" width="300" height="45"></canvas>
+            </div>
+            <canvas class="menu-item" id="diff-back" width="120" height="40"></canvas>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="game-screen" class="screen">
+            <div id="top-bar">
+                <div id="top-icons">
+                    <canvas class="top-icon" id="icon-stars" width="50" height="45"></canvas>
+                    <canvas class="top-icon" id="icon-music" width="50" height="45"></canvas>
+                    <canvas class="top-icon" id="icon-home" width="50" height="45"></canvas>
+                </div>
+                <div id="top-right">
+                    <canvas id="timer-canvas" width="140" height="40" style="display:none;"></canvas>
+                    <div id="equalizer" class="paused">
+                        <div class="eq-bar"></div>
+                        <div class="eq-bar"></div>
+                        <div class="eq-bar"></div>
+                        <div class="eq-bar"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="puzzle-container">
+                <canvas id="puzzle-canvas" width="340" height="340"></canvas>
+                <canvas id="mode-canvas" width="400" height="40"></canvas>
+            </div>
+        </div>
+
+        <!-- HOWTO SCREEN -->
+        <div id="howto-screen" class="screen">
+            <canvas id="howto-title" width="280" height="50"></canvas>
+            <div class="content">
+                <canvas id="howto-content" width="340" height="320"></canvas>
+            </div>
+            <canvas class="menu-item" id="howto-back" width="120" height="40"></canvas>
+        </div>
+
+        <!-- NICKNAME SCREEN -->
+        <div id="nickname-screen" class="screen">
+            <canvas id="nickname-title" width="320" height="50"></canvas>
+            <div class="content">
+                <canvas id="nickname-input-canvas" width="280" height="50"></canvas>
+                <canvas class="menu-item" id="nickname-save" width="120" height="40"></canvas>
+            </div>
+            <canvas class="menu-item" id="nickname-back" width="120" height="40"></canvas>
+        </div>
+
+        <!-- LEADERBOARD SCREEN -->
+        <div id="leaderboard-screen" class="screen">
+            <canvas id="leaderboard-title" width="300" height="50"></canvas>
+            <div class="content">
+                <div class="leaderboard-nav" style="justify-content:center;">
+                    <canvas id="lb-chrono-title" width="280" height="45" class="menu-item" style="margin:0;"></canvas>
+                </div>
+                <div class="leaderboard-nav">
+                    <canvas class="nav-arrow" id="lb-prev" width="40" height="40"></canvas>
+                    <canvas id="lb-mode-title" width="280" height="35"></canvas>
+                    <canvas class="nav-arrow" id="lb-next" width="40" height="40"></canvas>
+                </div>
+                <canvas id="leaderboard-list" width="380" height="350"></canvas>
+            </div>
+            <canvas class="menu-item" id="leaderboard-back" width="120" height="40"></canvas>
+        </div>
+
+        <!-- GAMEOVER SCREEN -->
+        <div id="gameover-screen" class="screen">
+            <canvas id="gameover-title" width="280" height="50"></canvas>
+            <div class="content">
+                <canvas id="gameover-score" width="380" height="120"></canvas>
+                <canvas class="menu-item" id="gameover-restart" width="200" height="45"></canvas>
+                <canvas class="menu-item" id="gameover-menu" width="120" height="45"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/musubi/sw.js');
+        }
+    </script>
+</body>
+</html>
