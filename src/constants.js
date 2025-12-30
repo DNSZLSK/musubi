@@ -54,7 +54,7 @@ export const THEMES = ['', 'theme-cyan', 'theme-amber', 'theme-white', 'theme-pi
 
 // Configuration chrono
 export const CHRONO_CONFIG = {
-    startTime: 120, // 2 minutes
+    startTime: 60, // 1 minutes
     bonus: {
         4: 10, // Training: +10s
         5: 15, // Challenge: +15s
