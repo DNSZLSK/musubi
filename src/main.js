@@ -50,10 +50,8 @@ function init() {
 // ============================================================================
 
 function setupEventListeners() {
-    // Init audio on first click
     document.addEventListener('click', () => initAudioContext(), { once: true });
 
-    // Beep on clickable elements
     document.addEventListener('click', (e) => {
         if (
             e.target.classList.contains('menu-item') ||
@@ -64,16 +62,10 @@ function setupEventListeners() {
         }
     });
 
-    // ===== MENU SCREEN =====
-    document
-        .getElementById('menu-newgame')
-        ?.addEventListener('click', () => showScreen('difficulty'));
-    document
-        .getElementById('menu-leaderboard')
-        ?.addEventListener('click', () => showScreen('leaderboard'));
-    document
-        .getElementById('menu-nickname')
-        ?.addEventListener('click', () => showScreen('nickname'));
+    // MENU
+    document.getElementById('menu-newgame')?.addEventListener('click', () => showScreen('difficulty'));
+    document.getElementById('menu-leaderboard')?.addEventListener('click', () => showScreen('leaderboard'));
+    document.getElementById('menu-nickname')?.addEventListener('click', () => showScreen('nickname'));
     document.getElementById('menu-howto')?.addEventListener('click', () => showScreen('howto'));
     document.getElementById('menu-color')?.addEventListener('click', () => {
         state.currentTheme = (state.currentTheme + 1) % THEMES.length;
@@ -81,7 +73,7 @@ function setupEventListeners() {
         drawMenuScreen();
     });
 
-    // ===== DIFFICULTY SCREEN =====
+    // DIFFICULTY
     document.getElementById('diff-training')?.addEventListener('click', () => startGame(4));
     document.getElementById('diff-challenge')?.addEventListener('click', () => startGame(5));
     document.getElementById('diff-expert')?.addEventListener('click', () => startGame(6));
@@ -92,7 +84,7 @@ function setupEventListeners() {
         playBeep();
     });
 
-    // ===== GAME SCREEN =====
+    // GAME
     document.getElementById('puzzle-canvas')?.addEventListener('click', handlePuzzleClick);
     document.getElementById('icon-home')?.addEventListener('click', exitGame);
     document.getElementById('icon-stars')?.addEventListener('click', () => {
@@ -105,10 +97,10 @@ function setupEventListeners() {
     });
     document.getElementById('equalizer')?.addEventListener('click', nextTrack);
 
-    // ===== HOWTO SCREEN =====
+    // HOWTO
     document.getElementById('howto-back')?.addEventListener('click', () => showScreen('menu'));
 
-    // ===== NICKNAME SCREEN =====
+    // NICKNAME
     document.getElementById('nickname-input-canvas')?.addEventListener('click', startNicknameInput);
     document.getElementById('hidden-input')?.addEventListener('input', (e) => {
         handleNicknameInput(e.target.value);
@@ -127,7 +119,7 @@ function setupEventListeners() {
         showScreen('menu');
     });
 
-    // ===== LEADERBOARD SCREEN =====
+    // LEADERBOARD
     document.getElementById('lb-chrono-title')?.addEventListener('click', () => {
         toggleLeaderboardChrono();
         playBeep();
@@ -140,11 +132,9 @@ function setupEventListeners() {
         nextLeaderboardMode();
         playBeep();
     });
-    document
-        .getElementById('leaderboard-back')
-        ?.addEventListener('click', () => showScreen('menu'));
+    document.getElementById('leaderboard-back')?.addEventListener('click', () => showScreen('menu'));
 
-    // ===== GAMEOVER SCREEN =====
+    // GAMEOVER
     document.getElementById('gameover-restart')?.addEventListener('click', handleRestart);
     document.getElementById('gameover-menu')?.addEventListener('click', handleBackToMenu);
 }
@@ -164,7 +154,6 @@ function setupPreloader() {
     }
 
     const ctx = preloaderCanvas.getContext('2d');
-
     const assetsToLoad = 3;
     let loadedCount = 0;
     let preloaderDone = false;
@@ -177,20 +166,17 @@ function setupPreloader() {
         const h = preloaderCanvas.height;
 
         ctx.clearRect(0, 0, w, h);
-
         drawCenteredText(ctx, 'LOADING', w, 15, 4, color);
         drawCenteredText(ctx, `${Math.floor(progress)}%`, w, 55, 3, color);
 
-        const bx = 30,
-            by = 85,
-            bw = w - 60,
-            bh = 16;
+        const bx = 30, by = 85, bw = w - 60, bh = 16;
         ctx.fillStyle = color;
 
         for (let py = 0; py < 2; py++) if (py % 2 === 0) ctx.fillRect(bx, by + py, bw, 1);
         for (let py = 0; py < 2; py++) if (py % 2 === 0) ctx.fillRect(bx, by + bh - 2 + py, bw, 1);
         for (let px = 0; px < 2; px++)
-            for (let py = 0; py < bh; py++) if (py % 2 === 0) ctx.fillRect(bx + px, by + py, 1, 1);
+            for (let py = 0; py < bh; py++)
+                if (py % 2 === 0) ctx.fillRect(bx + px, by + py, 1, 1);
         for (let px = 0; px < 2; px++)
             for (let py = 0; py < bh; py++)
                 if (py % 2 === 0) ctx.fillRect(bx + bw - 2 + px, by + py, 1, 1);
@@ -234,20 +220,21 @@ function setupPreloader() {
 
     drawPreloaderFrame();
 
+    // Logo - force reload pour attendre vraiment
     const logoImg = document.getElementById('logo-img');
     if (logoImg) {
-        if (logoImg.complete) updateProgress();
-        else {
-            logoImg.onload = updateProgress;
-            logoImg.onerror = updateProgress;
-        }
+        const src = logoImg.src;
+        logoImg.src = '';
+        logoImg.onload = updateProgress;
+        logoImg.onerror = updateProgress;
+        logoImg.src = src;
     } else {
         updateProgress();
     }
 
+    // Audio
     const bgMusic = getBgMusic();
     const beepSound = getBeepSound();
-
     let musicLoaded = false;
     let beepLoaded = false;
 
@@ -281,6 +268,7 @@ function setupPreloader() {
         onBeepLoad();
     }
 
+    // Timeout de secours
     setTimeout(() => {
         if (!preloaderDone) {
             targetProgress = 100;
