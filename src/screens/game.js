@@ -47,7 +47,11 @@ export function drawModeAndScore() {
 
     const mode = GAME_MODES[state.gridSize];
     const text = `${mode.name}  ${formatScore(state.currentScore)} PTS`;
-    drawCenteredText(ctx, text, canvas.width, 10, 3, getColor());
+    
+    // Réduire la taille si le texte est trop long
+    const scale = text.length > 20 ? 2 : 3;
+    
+    drawCenteredText(ctx, text, canvas.width, 10, scale, getColor());
 }
 
 /**
