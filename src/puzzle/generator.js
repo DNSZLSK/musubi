@@ -9,32 +9,35 @@ import { state } from '../state.js';
  */
 export function generatePuzzle() {
     const size = state.gridSize;
-    state.circles = [];
-    state.numbers = [];
 
-    // Génère les cercles avec une solution aléatoire
-    for (let y = 0; y < size; y++) {
-        state.circles[y] = [];
-        for (let x = 0; x < size; x++) {
-            state.circles[y][x] = {
-                filled: false,
-                solution: Math.random() < 0.35
-            };
-        }
-    }
+    do {
+        state.circles = [];
+        state.numbers = [];
 
-    // Calcule les nombres (somme des voisins remplis)
-    for (let y = 0; y < size - 1; y++) {
-        state.numbers[y] = [];
-        for (let x = 0; x < size - 1; x++) {
-            let count = 0;
-            if (state.circles[y][x].solution) count++;
-            if (state.circles[y][x + 1].solution) count++;
-            if (state.circles[y + 1][x].solution) count++;
-            if (state.circles[y + 1][x + 1].solution) count++;
-            state.numbers[y][x] = count;
+        // Génère les cercles avec une solution aléatoire
+        for (let y = 0; y < size; y++) {
+            state.circles[y] = [];
+            for (let x = 0; x < size; x++) {
+                state.circles[y][x] = {
+                    filled: false,
+                    solution: Math.random() < 0.35
+                };
+            }
         }
-    }
+
+        // Calcule les nombres (somme des voisins remplis)
+        for (let y = 0; y < size - 1; y++) {
+            state.numbers[y] = [];
+            for (let x = 0; x < size - 1; x++) {
+                let count = 0;
+                if (state.circles[y][x].solution) count++;
+                if (state.circles[y][x + 1].solution) count++;
+                if (state.circles[y + 1][x].solution) count++;
+                if (state.circles[y + 1][x + 1].solution) count++;
+                state.numbers[y][x] = count;
+            }
+        }
+    } while (checkWin()); // Régénère si la grille vide est déjà gagnante
 }
 
 /**
