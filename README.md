@@ -1,10 +1,16 @@
-# MUSUBI
+![MUSUBI Screenshot](https://raw.githubusercontent.com/DNSZLSK/musubi/master/public/Images/musubi%20logo%204.png)
 
-A retro CRT-style logic puzzle game built with vanilla JavaScript.
+<h1 align="center">MUSUBI</h1>
+<p align="center">
+  <strong>A retro CRT-style logic puzzle game built with vanilla JavaScript.</strong>
+</p>
+
 
 **[Play Now](https://dnszlsk.github.io/musubi/)**
 
-![MUSUBI Screenshot](https://raw.githubusercontent.com/DNSZLSK/musubi/master/public/Images/musubi%20logo%204.png)
+
+---
+
 
 ## How to Play
 
