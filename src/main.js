@@ -175,7 +175,7 @@ function setupPreloader() {
 
         ctx.clearRect(0, 0, w, h);
         drawCenteredText(ctx, 'LOADING', w, 15, 4, color);
-        drawCenteredText(ctx, ${Math.floor(progress)}%, w, 55, 3, color);
+        drawCenteredText(ctx, `${Math.floor(progress)}%`, w, 55, 3, color);
 
         const bx = 30, by = 85, bw = w - 60, bh = 16;
         ctx.fillStyle = color;
