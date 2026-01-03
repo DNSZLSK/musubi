@@ -63,7 +63,13 @@ function setupEventListeners() {
     });
 
     // MENU
-    document.getElementById('menu-newgame')?.addEventListener('click', () => showScreen('difficulty'));
+    document.getElementById('menu-newgame')?.addEventListener('click', () => {
+        if (state.nickname === 'PLAYER') {
+            showScreen('nickname');
+        } else {
+            showScreen('difficulty');
+        }
+    });
     document.getElementById('menu-leaderboard')?.addEventListener('click', () => showScreen('leaderboard'));
     document.getElementById('menu-nickname')?.addEventListener('click', () => showScreen('nickname'));
     document.getElementById('menu-howto')?.addEventListener('click', () => showScreen('howto'));
