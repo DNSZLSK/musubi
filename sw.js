@@ -1,4 +1,4 @@
-const CACHE_NAME = 'musubi-2026-01-03T20-54-17';
+const CACHE_NAME = 'musubi-2026-01-03T21-08-32';
 const urlsToCache = [
     '/musubi/',
     '/musubi/index.html',
