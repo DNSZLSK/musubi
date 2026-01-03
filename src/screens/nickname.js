@@ -12,8 +12,9 @@ import { drawCenteredText } from '../renderer/scanline.js';
 export function drawNicknameScreen() {
     const color = getColor();
 
-    // Recharge le nickname depuis le state (qui vient du localStorage)
+    // Initialise l'affichage avec le nickname actuel
     state.nicknameInput = state.nickname;
+    state.nicknameActive = false;
 
     // Titre
     const titleCanvas = document.getElementById('nickname-title');
@@ -55,7 +56,16 @@ export function drawNicknameInput() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const displayText = state.nicknameInput || state.nickname || 'PLAYER';
+    let displayText;
+
+    if (state.nicknameActive) {
+        // En édition → afficher ce que l'utilisateur tape (ou vide)
+        displayText = state.nicknameInput;
+    } else {
+        // Hors édition → afficher le nickname sauvegardé
+        displayText = state.nickname || 'PLAYER';
+    }
+
     drawCenteredText(ctx, displayText, canvas.width, 15, 3, color);
 
     // Ligne de soulignement
@@ -66,7 +76,7 @@ export function drawNicknameInput() {
 }
 
 /**
- * Active l'input du nickname
+ * Active l'input du nickname (au clic)
  */
 export function startNicknameInput() {
     state.nicknameActive = true;
@@ -94,7 +104,7 @@ export function stopNicknameInput() {
 }
 
 /**
- * Gère l'input du nickname
+ * Gère l'input clavier
  */
 export function handleNicknameInput(value) {
     state.nicknameInput = value
@@ -121,7 +131,7 @@ export function saveCurrentNickname() {
 }
 
 /**
- * Affiche le message "SAVED!" temporairement
+ * Affiche le message "DONE"
  */
 function showSavedMessage() {
     const saveCanvas = document.getElementById('nickname-save');
@@ -130,11 +140,9 @@ function showSavedMessage() {
     const ctx = saveCanvas.getContext('2d');
     const color = getColor();
 
-    // Affiche "OK!" (plus court pour éviter le décalage)
     ctx.clearRect(0, 0, saveCanvas.width, saveCanvas.height);
     drawCenteredText(ctx, 'DONE', saveCanvas.width, 10, 3, color);
 
-    // Revient à "SAVE" après 1.5 secondes
     setTimeout(() => {
         ctx.clearRect(0, 0, saveCanvas.width, saveCanvas.height);
         drawCenteredText(ctx, 'SAVE', saveCanvas.width, 10, 3, color);
