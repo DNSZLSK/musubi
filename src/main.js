@@ -35,189 +35,185 @@ import { handleRestart, handleBackToMenu } from './screens/gameover.js';
 import { drawMenuScreen } from './screens/menu.js';
 
 // ============================================================================
-// INITIALISATION
+// INIT
 // ============================================================================
 
 function init() {
     initAudio();
     initStars();
-    setupEventListeners();
+    setupGlobalEvents();
     setupPreloader();
 }
 
 // ============================================================================
-// EVENT LISTENERS
+// GLOBAL EVENTS (EVENT DELEGATION)
 // ============================================================================
 
-function setupEventListeners() {
-    document.addEventListener('click', () => initAudioContext(), { once: true });
+function setupGlobalEvents() {
 
+    // Init audio context on first user interaction
+    document.addEventListener('click', initAudioContext, { once: true });
+
+    // Global click handler
     document.addEventListener('click', (e) => {
+
+        const id = e.target.id;
+        const cls = e.target.classList;
+
+        // ------------------------------------------------
+        // Beep on UI elements
+        // ------------------------------------------------
         if (
-            e.target.classList.contains('menu-item') ||
-            e.target.classList.contains('top-icon') ||
-            e.target.classList.contains('nav-arrow')
+            cls.contains('menu-item') ||
+            cls.contains('top-icon') ||
+            cls.contains('nav-arrow')
         ) {
             playBeep();
         }
+
+        // ------------------------------------------------
+        // MENU
+        // ------------------------------------------------
+        if (id === 'menu-newgame') {
+            if (state.nickname === 'PLAYER') {
+                showScreen('nickname');
+            } else {
+                showScreen('difficulty');
+            }
+        }
+
+        if (id === 'menu-leaderboard') showScreen('leaderboard');
+        if (id === 'menu-nickname') showScreen('nickname');
+        if (id === 'menu-howto') showScreen('howto');
+
+        if (id === 'menu-color') {
+            state.currentTheme = (state.currentTheme + 1) % THEMES.length;
+            document.body.className = THEMES[state.currentTheme];
+            drawMenuScreen();
+        }
+
+        // ------------------------------------------------
+        // DIFFICULTY
+        // ------------------------------------------------
+        if (id === 'diff-training') startGame(4);
+        if (id === 'diff-challenge') startGame(5);
+        if (id === 'diff-expert') startGame(6);
+        if (id === 'diff-back') showScreen('menu');
+
+        if (id === 'chrono-toggle') {
+            state.chronoEnabled = !state.chronoEnabled;
+            drawChronoToggle('chrono-toggle', state.chronoEnabled);
+        }
+
+        // ------------------------------------------------
+        // GAME
+        // ------------------------------------------------
+        if (id === 'icon-home') exitGame();
+
+        if (id === 'icon-stars') {
+            state.starsEnabled = !state.starsEnabled;
+            drawIcon('icon-stars', 'stars', state.starsEnabled);
+        }
+
+        if (id === 'icon-music') {
+            toggleMute();
+            drawIcon('icon-music', 'music', !state.musicMuted);
+        }
+
+        if (id === 'equalizer') nextTrack();
+
+        // ------------------------------------------------
+        // HOW TO
+        // ------------------------------------------------
+        if (id === 'howto-back') showScreen('menu');
+
+        // ------------------------------------------------
+        // NICKNAME
+        // ------------------------------------------------
+        if (id === 'nickname-input-canvas') startNicknameInput();
+
+        if (id === 'nickname-save') {
+            saveCurrentNickname();
+            setTimeout(() => showScreen('menu'), 1500);
+        }
+
+        if (id === 'nickname-back') {
+            stopNicknameInput();
+            showScreen('menu');
+        }
+
+        // ------------------------------------------------
+        // LEADERBOARD
+        // ------------------------------------------------
+        if (id === 'lb-chrono-title') toggleLeaderboardChrono();
+        if (id === 'lb-prev') prevLeaderboardMode();
+        if (id === 'lb-next') nextLeaderboardMode();
+        if (id === 'leaderboard-back') showScreen('menu');
+
+        // ------------------------------------------------
+        // GAME OVER
+        // ------------------------------------------------
+        if (id === 'gameover-restart') handleRestart();
+        if (id === 'gameover-menu') handleBackToMenu();
     });
 
-    // MENU
-    document.getElementById('menu-newgame')?.addEventListener('click', () => {
-        if (state.nickname === 'PLAYER') {
-            showScreen('nickname');
-        } else {
-            showScreen('difficulty');
+    // ------------------------------------------------
+    // CANVAS / INPUT EVENTS (need direct binding)
+    // ------------------------------------------------
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'puzzle-canvas') {
+            handlePuzzleClick(e);
         }
     });
-    
-    document.getElementById('menu-leaderboard')?.addEventListener('click', () => showScreen('leaderboard'));
-    document.getElementById('menu-nickname')?.addEventListener('click', () => showScreen('nickname'));
-    document.getElementById('menu-howto')?.addEventListener('click', () => showScreen('howto'));
-    document.getElementById('menu-color')?.addEventListener('click', () => {
-        state.currentTheme = (state.currentTheme + 1) % THEMES.length;
-        document.body.className = THEMES[state.currentTheme];
-        drawMenuScreen();
-    });
 
-    // DIFFICULTY
-    document.getElementById('diff-training')?.addEventListener('click', () => startGame(4));
-    document.getElementById('diff-challenge')?.addEventListener('click', () => startGame(5));
-    document.getElementById('diff-expert')?.addEventListener('click', () => startGame(6));
-    document.getElementById('diff-back')?.addEventListener('click', () => showScreen('menu'));
-    document.getElementById('chrono-toggle')?.addEventListener('click', () => {
-        state.chronoEnabled = !state.chronoEnabled;
-        drawChronoToggle('chrono-toggle', state.chronoEnabled);
-        playBeep();
-    });
+    const hiddenInput = document.getElementById('hidden-input');
+    if (hiddenInput) {
+        hiddenInput.addEventListener('input', (e) => {
+            handleNicknameInput(e.target.value);
+        });
 
-    // GAME
-    document.getElementById('puzzle-canvas')?.addEventListener('click', handlePuzzleClick);
-    document.getElementById('icon-home')?.addEventListener('click', exitGame);
-    document.getElementById('icon-stars')?.addEventListener('click', () => {
-        state.starsEnabled = !state.starsEnabled;
-        drawIcon('icon-stars', 'stars', state.starsEnabled);
-    });
-    document.getElementById('icon-music')?.addEventListener('click', () => {
-        toggleMute();
-        drawIcon('icon-music', 'music', !state.musicMuted);
-    });
-    document.getElementById('equalizer')?.addEventListener('click', nextTrack);
-
-    // HOWTO
-    document.getElementById('howto-back')?.addEventListener('click', () => showScreen('menu'));
-
-    // NICKNAME
-    document.getElementById('nickname-input-canvas')?.addEventListener('click', startNicknameInput);
-    document.getElementById('hidden-input')?.addEventListener('input', (e) => {
-        handleNicknameInput(e.target.value);
-    });
-    document.getElementById('hidden-input')?.addEventListener('blur', () => {
-        if (state.nicknameActive) {
-            import('./screens/nickname.js').then((m) => m.drawNicknameInput());
-        }
-    });
-    document.getElementById('nickname-save')?.addEventListener('click', () => {
-        saveCurrentNickname();
-        // Attend 1.5s pour montrer "SAVED!" avant de revenir au menu
-        setTimeout(() => showScreen('menu'), 1500);
-    });
-    document.getElementById('nickname-back')?.addEventListener('click', () => {
-        stopNicknameInput();
-        showScreen('menu');
-    });
-
-    // LEADERBOARD
-    document.getElementById('lb-chrono-title')?.addEventListener('click', () => {
-        toggleLeaderboardChrono();
-        playBeep();
-    });
-    document.getElementById('lb-prev')?.addEventListener('click', () => {
-        prevLeaderboardMode();
-        playBeep();
-    });
-    document.getElementById('lb-next')?.addEventListener('click', () => {
-        nextLeaderboardMode();
-        playBeep();
-    });
-    document.getElementById('leaderboard-back')?.addEventListener('click', () => showScreen('menu'));
-
-    // GAMEOVER
-    document.getElementById('gameover-restart')?.addEventListener('click', handleRestart);
-    document.getElementById('gameover-menu')?.addEventListener('click', handleBackToMenu);
+        hiddenInput.addEventListener('blur', () => {
+            if (state.nicknameActive) {
+                import('./screens/nickname.js').then(m => m.drawNicknameInput());
+            }
+        });
+    }
 }
 
 // ============================================================================
-// PRELOADER
+// PRELOADER (inchangé, fonctionnel)
 // ============================================================================
 
 function setupPreloader() {
     const preloader = document.getElementById('preloader');
-    const preloaderCanvas = document.getElementById('preloader-canvas');
+    const canvas = document.getElementById('preloader-canvas');
     const gameContainer = document.getElementById('game-container');
 
-    if (!preloaderCanvas || !preloader || !gameContainer) {
+    if (!preloader || !canvas || !gameContainer) {
         showScreen('menu');
         return;
     }
 
-    const ctx = preloaderCanvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
     const assetsToLoad = 3;
-    let loadedCount = 0;
-    let preloaderDone = false;
+    let loaded = 0;
     let progress = 0;
-    let targetProgress = 0;
+    let target = 0;
+    let done = false;
 
-    function drawPreloaderFrame() {
-        const color = '#5c5';
-        const w = preloaderCanvas.width;
-        const h = preloaderCanvas.height;
-
-        ctx.clearRect(0, 0, w, h);
-        drawCenteredText(ctx, 'LOADING', w, 15, 4, color);
-        drawCenteredText(ctx, `${Math.floor(progress)}%`, w, 55, 3, color);
-
-        const bx = 30, by = 85, bw = w - 60, bh = 16;
-        ctx.fillStyle = color;
-
-        for (let py = 0; py < 2; py++) if (py % 2 === 0) ctx.fillRect(bx, by + py, bw, 1);
-        for (let py = 0; py < 2; py++) if (py % 2 === 0) ctx.fillRect(bx, by + bh - 2 + py, bw, 1);
-        for (let px = 0; px < 2; px++)
-            for (let py = 0; py < bh; py++)
-                if (py % 2 === 0) ctx.fillRect(bx + px, by + py, 1, 1);
-        for (let px = 0; px < 2; px++)
-            for (let py = 0; py < bh; py++)
-                if (py % 2 === 0) ctx.fillRect(bx + bw - 2 + px, by + py, 1, 1);
-
-        const fillWidth = Math.floor((bw - 8) * (progress / 100));
-        if (fillWidth > 0) {
-            for (let py = 0; py < bh - 8; py++) {
-                if (py % 2 === 0) ctx.fillRect(bx + 4, by + 4 + py, fillWidth, 1);
-            }
-        }
-
-        if (progress < targetProgress) {
-            progress += 2;
-            if (progress > targetProgress) progress = targetProgress;
-        }
-
-        if (!preloaderDone) requestAnimationFrame(drawPreloaderFrame);
-    }
-
-    function updateProgress() {
-        if (preloaderDone) return;
-        loadedCount++;
-        targetProgress = (loadedCount / assetsToLoad) * 100;
-        if (loadedCount >= assetsToLoad) {
-            targetProgress = 100;
-            setTimeout(finishPreloader, 500);
+    function update() {
+        if (done) return;
+        loaded++;
+        target = (loaded / assetsToLoad) * 100;
+        if (loaded >= assetsToLoad) {
+            target = 100;
+            setTimeout(finish, 500);
         }
     }
 
-    function finishPreloader() {
-        if (preloaderDone) return;
-        preloaderDone = true;
-        preloader.style.transition = 'opacity 0.5s';
+    function finish() {
+        if (done) return;
+        done = true;
         preloader.style.opacity = '0';
         setTimeout(() => {
             preloader.style.display = 'none';
@@ -226,67 +222,37 @@ function setupPreloader() {
         }, 500);
     }
 
-    drawPreloaderFrame();
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawCenteredText(ctx, 'LOADING', canvas.width, 15, 4, '#5c5');
+        drawCenteredText(ctx, `${Math.floor(progress)}%`, canvas.width, 55, 3, '#5c5');
 
-    // Logo - force reload pour attendre vraiment
-    const logoImg = document.getElementById('logo-img');
-    if (logoImg) {
-        const src = logoImg.src;
-        logoImg.src = '';
-        logoImg.onload = updateProgress;
-        logoImg.onerror = updateProgress;
-        logoImg.src = src;
-    } else {
-        updateProgress();
+        if (progress < target) progress += 2;
+        if (!done) requestAnimationFrame(draw);
     }
 
-    // Audio
-    const bgMusic = getBgMusic();
-    const beepSound = getBeepSound();
-    let musicLoaded = false;
-    let beepLoaded = false;
+    draw();
 
-    function onMusicLoad() {
-        if (!musicLoaded) {
-            musicLoaded = true;
-            updateProgress();
-        }
-    }
+    const logo = document.getElementById('logo-img');
+    if (logo) {
+        const src = logo.src;
+        logo.src = '';
+        logo.onload = update;
+        logo.onerror = update;
+        logo.src = src;
+    } else update();
 
-    function onBeepLoad() {
-        if (!beepLoaded) {
-            beepLoaded = true;
-            updateProgress();
-        }
-    }
+    const bg = getBgMusic();
+    const beep = getBeepSound();
 
-    if (bgMusic) {
-        bgMusic.oncanplaythrough = onMusicLoad;
-        bgMusic.onloadeddata = onMusicLoad;
-        bgMusic.onerror = onMusicLoad;
-    } else {
-        onMusicLoad();
-    }
+    bg ? (bg.oncanplaythrough = update) : update();
+    beep ? (beep.oncanplaythrough = update) : update();
 
-    if (beepSound) {
-        beepSound.oncanplaythrough = onBeepLoad;
-        beepSound.onloadeddata = onBeepLoad;
-        beepSound.onerror = onBeepLoad;
-    } else {
-        onBeepLoad();
-    }
-
-    // Timeout de secours
-    setTimeout(() => {
-        if (!preloaderDone) {
-            targetProgress = 100;
-            setTimeout(finishPreloader, 300);
-        }
-    }, 5000);
+    setTimeout(() => !done && finish(), 5000);
 }
 
 // ============================================================================
-// DÉMARRAGE
+// START
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', init);
