@@ -46,6 +46,16 @@ export const state = {
         expert_chrono: []
     },
 
+    // Cache pour preload leaderboard
+    leaderboardCache: {
+        training: [],
+        challenge: [],
+        expert: [],
+        training_chrono: [],
+        challenge_chrono: [],
+        expert_chrono: []
+    },
+
     // Audio
     currentTrack: 0,
     musicStarted: false,

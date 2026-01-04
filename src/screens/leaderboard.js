@@ -70,9 +70,6 @@ function drawArrow(canvasId, direction) {
     drawCenteredText(ctx, direction === 'left' ? '<' : '>', canvas.width, 8, 4, getColor());
 }
 
-/**
- * Dessine la liste des scores
- */
 async function drawScoresList() {
     const canvas = document.getElementById('leaderboard-list');
     if (!canvas) return;
@@ -80,21 +77,41 @@ async function drawScoresList() {
     const ctx = canvas.getContext('2d');
     const color = getColor();
 
+    // Lire les scores du cache local (leaderboardData)
+    const mode = state.currentLeaderboardMode;
+    const chrono = state.currentLeaderboardChrono === 1;
+    const modeKeys = ['training', 'challenge', 'expert'];
+    const key = chrono ? modeKeys[mode] + '_chrono' : modeKeys[mode];
+    let scores = state.leaderboardData[key] || [];
+
+    // Affiche les scores du cache immédiatement
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawCenteredText(ctx, 'LOADING...', canvas.width, 160, 3, color);
-
-    await fetchLeaderboard();
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const scores = getCurrentScores();
-
     if (scores.length === 0) {
-        drawCenteredText(ctx, 'NO SCORES YET', canvas.width, 160, 3, color);
-        return;
+        drawCenteredText(ctx, 'LOADING...', canvas.width, 160, 3, color);
+    } else {
+        drawScores(scores, ctx, color);
     }
 
-    // Layout: rang aligné à droite sur 40px, puis nickname, puis score aligné à droite
+    // Fetcher le leaderboard en arrière-plan
+    const fetchedData = await fetchLeaderboard();
+
+    // Mettre à jour le cache local avec les nouvelles données
+    if (fetchedData && fetchedData[key]) {
+        state.leaderboardData[key] = fetchedData[key];
+        scores = state.leaderboardData[key];
+    }
+
+    // Redraw avec les nouvelles données
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (scores.length === 0) {
+        drawCenteredText(ctx, 'NO SCORES YET', canvas.width, 160, 3, color);
+    } else {
+        drawScores(scores, ctx, color);
+    }
+}
+
+// Fonction utilitaire pour dessiner la liste des scores
+function drawScores(scores, ctx, color) {
     const rankEndX = 55;      // Position fin du rang
     const nicknameX = 65;     // Position début nickname
     const scoreEndX = 365;    // Position fin du score
