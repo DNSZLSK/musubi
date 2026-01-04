@@ -35,7 +35,21 @@ import { handleRestart, handleBackToMenu } from './screens/gameover.js';
 import { drawMenuScreen } from './screens/menu.js';
 
 import { fetchLeaderboard } from './api/leaderboard.js';
-import { state } from './state.js';
+
+// ============================================================================
+// PRELOAD LEADERBOARD (accessible depuis init)
+// ============================================================================
+function preloadLeaderboard() {
+    fetchLeaderboard().then(fetchedData => {
+        if (!fetchedData) return;
+
+        // Mettre à jour cache et leaderboardData
+        Object.keys(fetchedData).forEach(key => {
+            state.leaderboardData[key] = fetchedData[key];
+            state.leaderboardCache[key] = fetchedData[key];
+        });
+    });
+}
 
 // ============================================================================
 // INITIALISATION
@@ -46,6 +60,8 @@ function init() {
     initStars();
     setupEventListeners();
     setupPreloader();
+
+    // Lancer le preload du leaderboard dès le départ
     preloadLeaderboard();
 }
 
@@ -123,7 +139,6 @@ function setupEventListeners() {
     });
     document.getElementById('nickname-save')?.addEventListener('click', () => {
         saveCurrentNickname();
-        // Attend 1.5s pour montrer "SAVED!" avant de revenir au menu
         setTimeout(() => showScreen('menu'), 1500);
     });
     document.getElementById('nickname-back')?.addEventListener('click', () => {
@@ -287,18 +302,6 @@ function setupPreloader() {
             setTimeout(finishPreloader, 300);
         }
     }, 5000);
-
-    function preloadLeaderboard() {
-        fetchLeaderboard().then(fetchedData => {
-            if (!fetchedData) return;
-
-            // Mettre à jour cache et leaderboardData
-            Object.keys(fetchedData).forEach(key => {
-                state.leaderboardData[key] = fetchedData[key];
-                state.leaderboardCache[key] = fetchedData[key];
-            });
-        });
-    }
 }
 
 // ============================================================================
