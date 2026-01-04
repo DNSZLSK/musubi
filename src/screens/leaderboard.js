@@ -70,6 +70,9 @@ function drawArrow(canvasId, direction) {
     drawCenteredText(ctx, direction === 'left' ? '<' : '>', canvas.width, 8, 4, getColor());
 }
 
+/**
+ * Dessine la liste des scores avec preload instantané et update asynchrone
+ */
 async function drawScoresList() {
     const canvas = document.getElementById('leaderboard-list');
     if (!canvas) return;
@@ -77,40 +80,49 @@ async function drawScoresList() {
     const ctx = canvas.getContext('2d');
     const color = getColor();
 
-    // Lire les scores du cache local (leaderboardData)
+    // Déterminer la clé selon mode et chrono
+    const modeKeys = ['training', 'challenge', 'expert'];
     const mode = state.currentLeaderboardMode;
     const chrono = state.currentLeaderboardChrono === 1;
-    const modeKeys = ['training', 'challenge', 'expert'];
     const key = chrono ? modeKeys[mode] + '_chrono' : modeKeys[mode];
-    let scores = state.leaderboardData[key] || [];
 
-    // Affiche les scores du cache immédiatement
+    // Affiche immédiatement le cache (s'il y en a)
+    let scores = state.leaderboardData[key] || state.leaderboardCache[key] || [];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     if (scores.length === 0) {
         drawCenteredText(ctx, 'LOADING...', canvas.width, 160, 3, color);
     } else {
         drawScores(scores, ctx, color);
     }
 
-    // Fetcher le leaderboard en arrière-plan
-    const fetchedData = await fetchLeaderboard();
+    // Mettre à jour le cache local (leaderboardCache) pour preload futur
+    state.leaderboardCache[key] = scores;
 
-    // Mettre à jour le cache local avec les nouvelles données
-    if (fetchedData && fetchedData[key]) {
+    // Lancer le fetch en arrière-plan
+    fetchLeaderboard().then(fetchedData => {
+        if (!fetchedData || !fetchedData[key]) return;
+
+        // Mettre à jour leaderboardData et cache
         state.leaderboardData[key] = fetchedData[key];
-        scores = state.leaderboardData[key];
-    }
+        state.leaderboardCache[key] = fetchedData[key];
 
-    // Redraw avec les nouvelles données
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (scores.length === 0) {
-        drawCenteredText(ctx, 'NO SCORES YET', canvas.width, 160, 3, color);
-    } else {
-        drawScores(scores, ctx, color);
-    }
+        // Redraw seulement si on est toujours sur ce mode + chrono
+        if (state.currentLeaderboardMode === mode && state.currentLeaderboardChrono === (chrono ? 1 : 0)) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const newScores = fetchedData[key];
+            if (newScores.length === 0) {
+                drawCenteredText(ctx, 'NO SCORES YET', canvas.width, 160, 3, color);
+            } else {
+                drawScores(newScores, ctx, color);
+            }
+        }
+    });
 }
 
-// Fonction utilitaire pour dessiner la liste des scores
+/**
+ * Fonction utilitaire pour dessiner la liste des scores
+ */
 function drawScores(scores, ctx, color) {
     const rankEndX = 55;      // Position fin du rang
     const nicknameX = 65;     // Position début nickname
