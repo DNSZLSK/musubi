@@ -34,6 +34,9 @@ import {
 import { handleRestart, handleBackToMenu } from './screens/gameover.js';
 import { drawMenuScreen } from './screens/menu.js';
 
+import { fetchLeaderboard } from './api/leaderboard.js';
+import { state } from './state.js';
+
 // ============================================================================
 // INITIALISATION
 // ============================================================================
@@ -43,6 +46,7 @@ function init() {
     initStars();
     setupEventListeners();
     setupPreloader();
+    preloadLeaderboard();
 }
 
 // ============================================================================
@@ -283,6 +287,18 @@ function setupPreloader() {
             setTimeout(finishPreloader, 300);
         }
     }, 5000);
+
+    function preloadLeaderboard() {
+        fetchLeaderboard().then(fetchedData => {
+            if (!fetchedData) return;
+
+            // Mettre à jour cache et leaderboardData
+            Object.keys(fetchedData).forEach(key => {
+                state.leaderboardData[key] = fetchedData[key];
+                state.leaderboardCache[key] = fetchedData[key];
+            });
+        });
+    }
 }
 
 // ============================================================================
