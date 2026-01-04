@@ -11,6 +11,8 @@ export const state = {
     musicMuted: false,
     currentTheme: 0,
 
+    scoreSubmitted: false,
+
     // Partie en cours
     gridSize: 4,
     currentScore: 0,
@@ -58,6 +60,7 @@ export function resetGame() {
     state.circles = [];
     state.numbers = [];
     state.animations = [];
+    state.scoreSubmitted = false;
 }
 
 export function resetChrono() {

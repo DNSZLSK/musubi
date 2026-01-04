@@ -34,7 +34,14 @@ export function drawGameoverScreen() {
             4,
             color
         );
-        drawCenteredText(ctx, `${state.puzzlesSolved} PUZZLES`, scoreCanvas.width, 70, 3, color);
+        drawCenteredText(
+            ctx,
+            `${state.puzzlesSolved} PUZZLES`,
+            scoreCanvas.width,
+            70,
+            3,
+            color
+        );
     }
 
     // Bouton restart
@@ -53,8 +60,9 @@ export function drawGameoverScreen() {
         drawCenteredText(ctx, 'MENU', menuCanvas.width, 12, 3, color);
     }
 
-    // Sauvegarder le score automatiquement quand l'écran s'affiche
-    if (state.currentScore > 0) {
+    // Sauvegarder le score UNE SEULE FOIS quand l'écran s'affiche
+    if (state.currentScore > 0 && !state.scoreSubmitted) {
+        state.scoreSubmitted = true;
         submitScore(state.currentScore, state.gridSize);
     }
 }
