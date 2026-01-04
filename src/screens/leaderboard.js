@@ -109,9 +109,10 @@ async function drawScoresList() {
 
         // Nickname (tronqué si trop long)
         const maxNicknameLength = 10;
-        const nickname = entry.nickname.length > maxNicknameLength 
-            ? entry.nickname.substring(0, maxNicknameLength) 
-            : entry.nickname;
+        const rawNickname = String(entry.nickname);
+        const nickname = rawNickname.length > maxNicknameLength
+            ? rawNickname.substring(0, maxNicknameLength)
+            : rawNickname;
         drawScanlineText(ctx, nickname, nicknameX, y, 3, color);
 
         // Score (aligné à droite)
