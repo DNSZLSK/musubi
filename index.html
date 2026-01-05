@@ -24,8 +24,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MUSUBI">
     <link rel="apple-touch-icon" href="/musubi/Images/icon-192.png">
-  <script type="module" crossorigin src="/musubi/assets/index-Clx5GJIn.js"></script>
-  <link rel="stylesheet" crossorigin href="/musubi/assets/index-B2OsFBN6.css">
+  <script type="module" crossorigin src="/musubi/assets/index-CteITxED.js"></script>
+  <link rel="stylesheet" crossorigin href="/musubi/assets/index-C4-3ygP5.css">
 </head>
 <body>
     <!-- Hidden input for mobile keyboard -->
@@ -112,15 +112,15 @@
         <div id="leaderboard-screen" class="screen">
             <canvas id="leaderboard-title" width="300" height="50"></canvas>
             <div class="content">
-                <div class="leaderboard-nav-wrapper">
+                <div class="leaderboard-nav" style="justify-content:center;">
+                    <canvas id="lb-chrono-title" width="280" height="45" class="menu-item" style="margin:0;"></canvas>
+                </div>
+                <div class="leaderboard-nav">
                     <canvas class="nav-arrow" id="lb-prev" width="40" height="40"></canvas>
-                    <div class="leaderboard-nav" id="lb-items">
-                        <canvas id="lb-chrono-title" width="280" height="45" class="menu-item"></canvas>
-                        <canvas id="lb-mode-title" width="280" height="35" class="menu-item"></canvas>
-                        <canvas id="leaderboard-list" width="380" height="350"></canvas>
-                    </div>
+                    <canvas id="lb-mode-title" width="280" height="35"></canvas>
                     <canvas class="nav-arrow" id="lb-next" width="40" height="40"></canvas>
                 </div>
+                <canvas id="leaderboard-list" width="380" height="350"></canvas>
             </div>
             <canvas class="menu-item" id="leaderboard-back" width="120" height="40"></canvas>
         </div>
