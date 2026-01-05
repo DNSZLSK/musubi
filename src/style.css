@@ -276,7 +276,7 @@ body.theme-pink #logo-img {
 canvas {
     max-width: 100%;
     height: auto;
-    display: block; /* évite les petits espaces blancs inline */
+    display: block;
 }
 
 /* ===== LEADERBOARD ===== */
@@ -299,8 +299,8 @@ canvas {
 }
 
 #lb-mode-title {
-    flex: 1 1 auto;      /* prend l’espace restant */
-    max-width: 70%;      /* ne dépasse pas 70% du conteneur */
+    flex: 1 1 auto;
+    max-width: 70%;
 }
 
 @media (hover: hover) {
