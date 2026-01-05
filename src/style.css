@@ -283,8 +283,9 @@ canvas {
 .leaderboard-nav {
     display: flex;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 15px;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
 }
 
 .nav-arrow {
@@ -293,6 +294,13 @@ canvas {
         filter 0.2s,
         transform 0.1s;
     filter: drop-shadow(0 0 2px var(--color));
+    width: clamp(30px, 8vw, 50px);
+    flex: 0 0 auto;
+}
+
+#lb-mode-title {
+    flex: 1 1 auto;      /* prend l’espace restant */
+    max-width: 70%;      /* ne dépasse pas 70% du conteneur */
 }
 
 @media (hover: hover) {
