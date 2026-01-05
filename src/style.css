@@ -272,6 +272,13 @@ body.theme-pink #logo-img {
     }
 }
 
+/* ===== CANVAS RESPONSIVE ===== */
+canvas {
+    max-width: 100%;
+    height: auto;
+    display: block; /* évite les petits espaces blancs inline */
+}
+
 /* ===== LEADERBOARD ===== */
 .leaderboard-nav {
     display: flex;
