@@ -7,11 +7,13 @@ import { getColor, formatScore, formatTime } from '../utils.js';
 import { drawCenteredText } from '../renderer/scanline.js';
 import { drawAllIcons } from '../renderer/icons.js';
 import { drawPuzzle } from '../puzzle/renderer.js';
-import { generatePuzzle, checkWin, toggleCircle, updateAnimations } from '../puzzle/generator.js';
+import { generatePuzzle, checkWin, toggleCircle, updateAnimations, startMelt, updateMelt } from '../puzzle/generator.js';
 import { startMusicWithFade, stopMusic } from '../audio/manager.js';
 import { submitScore } from '../api/leaderboard.js';
 import { showScreen } from './index.js';
 import { CHRONO_CONFIG, GAME_MODES } from '../constants.js';
+
+
 
 /**
  * Dessine l'écran de jeu
@@ -101,7 +103,24 @@ function gameLoop() {
         return;
     }
 
+    let needsRedraw = false;
+
+    // Update melt animation
+    if (state.meltActive) {
+        const meltDone = updateMelt();
+        needsRedraw = true;
+
+        if (meltDone) {
+            generatePuzzle();
+        }
+    }
+
+    // Update click animations
     if (updateAnimations()) {
+        needsRedraw = true;
+    }
+
+    if (needsRedraw) {
         drawPuzzle();
     }
 
@@ -150,11 +169,8 @@ function handleWin() {
 
     drawModeAndScore();
 
-    // Génère un nouveau puzzle après un délai
-    setTimeout(() => {
-        generatePuzzle();
-        drawPuzzle();
-    }, 500);
+    // Lance l'animation melt
+    startMelt();
 }
 
 /**

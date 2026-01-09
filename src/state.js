@@ -60,7 +60,13 @@ export const state = {
     currentTrack: 0,
     musicStarted: false,
     audioContext: null,
-    beepBuffer: null
+    beepBuffer: null,
+
+    // Melt animation
+    meltActive: false,
+    meltProgress: 0,
+    meltPhase: 0, // 0 = fill, 1 = fade
+
 };
 
 // Fonctions pour modifier l'état proprement

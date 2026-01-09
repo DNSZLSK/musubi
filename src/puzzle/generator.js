@@ -94,3 +94,36 @@ export function updateAnimations() {
     }
     return false;
 }
+
+/**
+ * Démarre l'animation melt (victoire)
+ */
+export function startMelt() {
+    state.meltActive = true;
+    state.meltProgress = 0;
+    state.meltPhase = 0;
+}
+
+/**
+ * Met à jour l'animation melt
+ * Retourne true si l'animation est terminée
+ */
+export function updateMelt() {
+    if (!state.meltActive) return false;
+
+    state.meltProgress += 0.05;
+
+    if (state.meltPhase === 0 && state.meltProgress >= 1) {
+        // Passe au fade out
+        state.meltPhase = 1;
+        state.meltProgress = 0;
+    } else if (state.meltPhase === 1 && state.meltProgress >= 1) {
+        // Animation terminée
+        state.meltActive = false;
+        state.meltProgress = 0;
+        state.meltPhase = 0;
+        return true;
+    }
+
+    return false;
+}

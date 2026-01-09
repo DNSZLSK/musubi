@@ -99,7 +99,7 @@ function drawCircles(ctx, size, cellSize, circleRadius, color) {
             const cx = x * cellSize + cellSize / 2;
             const cy = y * cellSize + cellSize / 2;
 
-            // Animation
+            // Animation click
             const anim = state.animations.find((a) => a.x === x && a.y === y);
             let scale = 1;
             let glowAlpha = 0;
@@ -111,11 +111,66 @@ function drawCircles(ctx, size, cellSize, circleRadius, color) {
 
             const radius = circleRadius * scale;
 
-            if (state.circles[y][x].filled) {
+            // Melt animation
+            if (state.meltActive) {
+                if (state.meltPhase === 0) {
+                    // Phase fill : tous les cercles se remplissent
+                    const fillAmount = state.meltProgress;
+                    drawMeltingCircle(ctx, cx, cy, radius, color, fillAmount);
+                } else {
+                    // Phase fade : tout disparaît
+                    const alpha = 1 - state.meltProgress;
+                    drawFilledCircleWithAlpha(ctx, cx, cy, radius, color, alpha);
+                }
+            } else if (state.circles[y][x].filled) {
                 drawFilledCircle(ctx, cx, cy, radius, color, glowAlpha);
             } else {
                 drawEmptyCircle(ctx, cx, cy, radius, color);
             }
+        }
+    }
+}
+
+function drawMeltingCircle(ctx, cx, cy, radius, color, fillAmount) {
+    const rgb = hexToRgb(color);
+    
+    // Contour
+    ctx.fillStyle = color;
+    const thickness = 4;
+    for (let t = 0; t < thickness; t++) {
+        const r = radius - t;
+        for (let angle = 0; angle < Math.PI * 2; angle += 0.03) {
+            const px = cx + Math.cos(angle) * r;
+            const py = cy + Math.sin(angle) * r;
+            if (Math.floor(py) % 2 === 0) {
+                ctx.fillRect(Math.floor(px), Math.floor(py), 2, 1);
+            }
+        }
+    }
+
+    // Remplissage stromboscopique
+    const fillHeight = radius * 2 * fillAmount;
+    const startY = cy - radius - fillHeight;
+
+    ctx.fillStyle = color;
+    for (let dy = 0; dy < fillHeight; dy++) {
+        const currentY = startY + dy;
+        if (Math.floor(currentY) % 2 === 0) {
+            const distFromCenter = currentY - cy;
+            const width = Math.sqrt(Math.max(0, radius * radius - distFromCenter * distFromCenter));
+            ctx.fillRect(cx - width, currentY, width * 2, 1);
+        }
+    }
+}
+
+function drawFilledCircleWithAlpha(ctx, cx, cy, radius, color, alpha) {
+    const rgb = hexToRgb(color);
+    ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
+
+    for (let dy = -radius; dy <= radius; dy++) {
+        if (Math.floor(cy + dy) % 2 === 0) {
+            const width = Math.sqrt(radius * radius - dy * dy);
+            ctx.fillRect(cx - width, cy + dy, width * 2, 1);
         }
     }
 }
