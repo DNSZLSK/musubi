@@ -191,10 +191,6 @@ export function stopChrono() {
 function endChrono() {
     stopChrono();
 
-    if (state.currentScore > 0) {
-        submitScore(state.currentScore, state.gridSize);
-    }
-
     stopMusic();
     showScreen('gameover');
 }
@@ -205,7 +201,8 @@ function endChrono() {
 export function exitGame() {
     stopChrono();
 
-    if (state.currentScore > 0) {
+    // Sauvegarde seulement si mode sans chrono
+    if (!state.chronoEnabled && state.currentScore > 0) {
         submitScore(state.currentScore, state.gridSize);
     }
 
