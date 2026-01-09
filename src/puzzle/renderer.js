@@ -148,9 +148,9 @@ function drawMeltingCircle(ctx, cx, cy, radius, color, fillAmount) {
         }
     }
 
-    // Remplissage stromboscopique
+    // Remplissage progressif (de haut en bas)
     const fillHeight = radius * 2 * fillAmount;
-    const startY = cy - radius - fillHeight;
+    const startY = cy - radius;
 
     ctx.fillStyle = color;
     for (let dy = 0; dy < fillHeight; dy++) {
