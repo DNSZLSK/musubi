@@ -13,8 +13,6 @@ import { submitScore } from '../api/leaderboard.js';
 import { showScreen } from './index.js';
 import { CHRONO_CONFIG, GAME_MODES } from '../constants.js';
 
-
-
 /**
  * Dessine l'écran de jeu
  */
