@@ -13,6 +13,10 @@ export const state = {
 
     scoreSubmitted: false,
 
+    // Navigation clavier
+    currentScreen: 'menu',
+    selectedIndex: 0,
+
     // Partie en cours
     gridSize: 4,
     currentScore: 0,

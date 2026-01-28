@@ -2,6 +2,7 @@
 // SCREENS - Gestion de la navigation entre écrans
 // ============================================================================
 
+import { state } from '../state.js';
 import { drawMenuScreen } from './menu.js';
 import { drawDifficultyScreen } from './difficulty.js';
 import { drawGameScreen } from './game.js';
@@ -24,6 +25,10 @@ export function showScreen(screenId) {
     if (targetScreen) {
         targetScreen.classList.add('active');
     }
+
+    // Met à jour l'état de navigation
+    state.currentScreen = screenId;
+    state.selectedIndex = 0;
 
     // Arrête l'input nickname si on quitte cet écran
     if (screenId !== 'nickname') {

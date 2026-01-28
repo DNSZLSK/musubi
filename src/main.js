@@ -66,11 +66,159 @@ function init() {
 }
 
 // ============================================================================
+// KEYBOARD NAVIGATION
+// ============================================================================
+
+// Configuration des éléments navigables par écran
+const SCREEN_NAV_CONFIG = {
+    menu: ['menu-newgame', 'menu-leaderboard', 'menu-nickname', 'menu-howto', 'menu-color'],
+    difficulty: ['diff-training', 'diff-challenge', 'diff-expert', 'chrono-toggle', 'diff-back'],
+    howto: ['howto-back'],
+    nickname: ['nickname-input-canvas', 'nickname-save', 'nickname-back'],
+    leaderboard: ['lb-chrono-title', 'lb-prev', 'lb-next', 'leaderboard-back'],
+    gameover: ['gameover-restart', 'gameover-menu'],
+    game: [] // Pas de navigation clavier en jeu
+};
+
+/**
+ * Met à jour la surbrillance visuelle de l'élément sélectionné
+ */
+function updateKeyboardFocus() {
+    // Retire la surbrillance précédente
+    document.querySelectorAll('.keyboard-focus').forEach(el => {
+        el.classList.remove('keyboard-focus');
+    });
+
+    const items = SCREEN_NAV_CONFIG[state.currentScreen] || [];
+    if (items.length === 0) return;
+
+    // Assure que l'index est valide
+    if (state.selectedIndex < 0) state.selectedIndex = items.length - 1;
+    if (state.selectedIndex >= items.length) state.selectedIndex = 0;
+
+    // Ajoute la surbrillance
+    const currentItem = document.getElementById(items[state.selectedIndex]);
+    if (currentItem) {
+        currentItem.classList.add('keyboard-focus');
+    }
+}
+
+/**
+ * Gère la navigation clavier
+ */
+function handleKeyboardNavigation(e) {
+    const screen = state.currentScreen;
+    const items = SCREEN_NAV_CONFIG[screen] || [];
+
+    // Ignore si on est en train de saisir le nickname
+    if (state.nicknameActive && screen === 'nickname') {
+        if (e.key === 'Enter') {
+            saveCurrentNickname();
+            setTimeout(() => showScreen('menu'), 1500);
+            e.preventDefault();
+        } else if (e.key === 'Escape') {
+            stopNicknameInput();
+            showScreen('menu');
+            e.preventDefault();
+        }
+        return;
+    }
+
+    // Ignore si pas d'éléments navigables (écran de jeu)
+    if (items.length === 0) {
+        if (e.key === 'Escape' && screen === 'game') {
+            exitGame();
+            e.preventDefault();
+        }
+        return;
+    }
+
+    switch (e.key) {
+    case 'ArrowUp':
+        state.selectedIndex--;
+        updateKeyboardFocus();
+        playBeep();
+        e.preventDefault();
+        break;
+
+    case 'ArrowDown':
+        state.selectedIndex++;
+        updateKeyboardFocus();
+        playBeep();
+        e.preventDefault();
+        break;
+
+    case 'ArrowLeft':
+        if (screen === 'leaderboard') {
+            prevLeaderboardMode();
+            playBeep();
+        } else if (screen === 'difficulty' && items[state.selectedIndex] === 'chrono-toggle') {
+            state.chronoEnabled = false;
+            drawChronoToggle('chrono-toggle', state.chronoEnabled);
+            playBeep();
+        }
+        e.preventDefault();
+        break;
+
+    case 'ArrowRight':
+        if (screen === 'leaderboard') {
+            nextLeaderboardMode();
+            playBeep();
+        } else if (screen === 'difficulty' && items[state.selectedIndex] === 'chrono-toggle') {
+            state.chronoEnabled = true;
+            drawChronoToggle('chrono-toggle', state.chronoEnabled);
+            playBeep();
+        }
+        e.preventDefault();
+        break;
+
+    case 'Enter':
+    case ' ':
+        // Simule un clic sur l'élément sélectionné
+        const currentItem = document.getElementById(items[state.selectedIndex]);
+        if (currentItem) {
+            currentItem.click();
+        }
+        e.preventDefault();
+        break;
+
+    case 'Escape':
+        // Retour à l'écran précédent
+        handleEscapeKey(screen);
+        e.preventDefault();
+        break;
+    }
+}
+
+/**
+ * Gère la touche Escape selon l'écran actuel
+ */
+function handleEscapeKey(screen) {
+    switch (screen) {
+    case 'difficulty':
+    case 'howto':
+    case 'nickname':
+    case 'leaderboard':
+        showScreen('menu');
+        break;
+    case 'gameover':
+        handleBackToMenu();
+        break;
+    case 'game':
+        exitGame();
+        break;
+    }
+}
+
+// ============================================================================
 // EVENT LISTENERS
 // ============================================================================
 
 function setupEventListeners() {
     document.addEventListener('click', () => initAudioContext(), { once: true });
+
+    // Navigation clavier
+    document.addEventListener('keydown', handleKeyboardNavigation);
 
     document.addEventListener('click', (e) => {
         if (

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"C:\\\\Users\\\\kposz\\\\PyCharmMiscProject\\\\CDA 2025 - 2026\\\\musubi\" log --oneline)",
+      "Bash(find:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm test)"
+    ]
+  }
+}

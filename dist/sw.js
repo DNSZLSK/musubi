@@ -1,4 +1,4 @@
-const CACHE_NAME = 'musubi-2026-01-10-v1';
+const CACHE_NAME = 'musubi-2026-01-28T21-52-48';
 const urlsToCache = [
     '/musubi/',
     '/musubi/index.html',
@@ -33,12 +33,8 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    // Network first pour HTML, JS, CSS
-    if (event.request.url.includes('/assets/') || 
-        event.request.url.endsWith('.html') || 
-        event.request.url.endsWith('/') ||
-        event.request.url.endsWith('.js') ||
-        event.request.url.endsWith('.css')) {
+    // Network first pour les assets JS/CSS, cache first pour le reste
+    if (event.request.url.includes('/assets/')) {
         event.respondWith(
             fetch(event.request)
                 .then((response) => {
@@ -51,7 +47,6 @@ self.addEventListener('fetch', (event) => {
                 .catch(() => caches.match(event.request))
         );
     } else {
-        // Cache first pour les musiques (elles changent jamais)
         event.respondWith(
             caches.match(event.request)
                 .then((response) => response || fetch(event.request))

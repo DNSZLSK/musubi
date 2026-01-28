@@ -10,70 +10,144 @@ import { LEADERBOARD_URL } from '../constants.js';
  */
 export async function fetchLeaderboard() {
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
         const response = await fetch(LEADERBOARD_URL, {
             method: 'GET',
-            redirect: 'follow'
+            redirect: 'follow',
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
 
         const data = await response.json();
 
         // Trie les scores par ordre décroissant
-        state.leaderboardData.training = (data.training || []).sort((a, b) => b.score - a.score);
-        state.leaderboardData.challenge = (data.challenge || []).sort((a, b) => b.score - a.score);
-        state.leaderboardData.expert = (data.expert || []).sort((a, b) => b.score - a.score);
-        state.leaderboardData.training_chrono = (data.training_chrono || []).sort(
-            (a, b) => b.score - a.score
-        );
-        state.leaderboardData.challenge_chrono = (data.challenge_chrono || []).sort(
-            (a, b) => b.score - a.score
-        );
-        state.leaderboardData.expert_chrono = (data.expert_chrono || []).sort(
-            (a, b) => b.score - a.score
-        );
+        const sortedData = {
+            training: (data.training || []).sort((a, b) => b.score - a.score),
+            challenge: (data.challenge || []).sort((a, b) => b.score - a.score),
+            expert: (data.expert || []).sort((a, b) => b.score - a.score),
+            training_chrono: (data.training_chrono || []).sort((a, b) => b.score - a.score),
+            challenge_chrono: (data.challenge_chrono || []).sort((a, b) => b.score - a.score),
+            expert_chrono: (data.expert_chrono || []).sort((a, b) => b.score - a.score)
+        };
 
-        return true;
+        // Met à jour le state
+        Object.assign(state.leaderboardData, sortedData);
+
+        return sortedData;
     } catch (error) {
-        console.error('Erreur fetch leaderboard:', error);
-        return false;
+        const isAbort = error.name === 'AbortError';
+        console.error('Leaderboard fetch failed:', isAbort ? 'timeout' : error.message);
+        return null;
     }
 }
 
 /**
- * Soumet un score au leaderboard
+ * Affiche un message de notification temporaire
  */
-export async function submitScore(score, gridSize) {
+function showNotification(message, isError = false) {
+    // Supprimer une notification existante
+    const existing = document.getElementById('notification-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'notification-toast';
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 24px;
+        background: ${isError ? '#400' : '#040'};
+        color: var(--color, #5c5);
+        border: 2px solid ${isError ? '#f44' : '#5c5'};
+        font-family: monospace;
+        font-size: 14px;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.3s;
+    `;
+    document.body.appendChild(toast);
+
+    // Fade in
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+    });
+
+    // Fade out après 3s
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+/**
+ * Soumet un score au leaderboard avec retry
+ */
+export async function submitScore(score, gridSize, retries = 3) {
     if (score <= 0) return false;
 
-    try {
-        const modeNames = {
-            4: 'training',
-            5: 'challenge',
-            6: 'expert'
-        };
+    const modeNames = {
+        4: 'training',
+        5: 'challenge',
+        6: 'expert'
+    };
 
-        const modeStr = modeNames[gridSize] || 'training';
-        const finalMode = state.chronoEnabled ? `${modeStr}_chrono` : modeStr;
+    const modeStr = modeNames[gridSize] || 'training';
+    const finalMode = state.chronoEnabled ? `${modeStr}_chrono` : modeStr;
 
-        console.log('Submit score:', { score, gridSize, chronoEnabled: state.chronoEnabled, finalMode, nickname: state.nickname });
+    const params = new URLSearchParams({
+        action: 'submit',
+        nickname: state.nickname,
+        score: score,
+        mode: finalMode
+    });
 
-        const params = new URLSearchParams({
-            action: 'submit',
-            nickname: state.nickname,
-            score: score,
-            mode: finalMode
-        });
+    const url = `${LEADERBOARD_URL}?${params.toString()}`;
 
-        const url = `${LEADERBOARD_URL}?${params.toString()}`;
-        console.log('URL:', url);
-        
-        const response = await fetch(url, { method: 'GET', redirect: 'follow' });
-        console.log('Response:', response.status);
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-        return true;
-    } catch (error) {
-        console.error('Erreur submit score:', error);
-        return false;
+            const response = await fetch(url, {
+                method: 'GET',
+                redirect: 'follow',
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            showNotification('SCORE SAVED!');
+            return true;
+        } catch (error) {
+            const isLastAttempt = attempt === retries;
+            const isAbort = error.name === 'AbortError';
+
+            if (isLastAttempt) {
+                const errorMsg = isAbort ? 'Connection timeout' : error.message;
+                console.error(`Score submit failed after ${retries} attempts:`, errorMsg);
+                showNotification('SCORE NOT SAVED - CHECK CONNECTION', true);
+                return false;
+            }
+
+            // Attendre avant de réessayer (backoff exponentiel)
+            await new Promise(r => setTimeout(r, 1000 * attempt));
+        }
     }
+
+    return false;
 }
 
 /**
