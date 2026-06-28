@@ -3,7 +3,7 @@
 // ============================================================================
 
 import './style.css';
-import { state } from './state.js';
+import { state, saveSettings } from './state.js';
 import { THEMES } from './constants.js';
 import { showScreen } from './screens/index.js';
 import { initStars } from './renderer/stars.js';
@@ -56,6 +56,9 @@ function preloadLeaderboard() {
 // ============================================================================
 
 function init() {
+    // Applique le thème sauvegardé
+    document.body.className = THEMES[state.currentTheme] || '';
+
     initAudio();
     initStars();
     setupEventListeners();
@@ -173,7 +176,7 @@ function handleKeyboardNavigation(e) {
         break;
 
     case 'Enter':
-    case ' ':
+    case ' ': {
         // Simule un clic sur l'élément sélectionné
         const currentItem = document.getElementById(items[state.selectedIndex]);
         if (currentItem) {
@@ -181,6 +184,7 @@ function handleKeyboardNavigation(e) {
         }
         e.preventDefault();
         break;
+    }
 
     case 'Escape':
         // Retour à l'écran précédent
@@ -245,6 +249,7 @@ function setupEventListeners() {
     document.getElementById('menu-color')?.addEventListener('click', () => {
         state.currentTheme = (state.currentTheme + 1) % THEMES.length;
         document.body.className = THEMES[state.currentTheme];
+        saveSettings();
         drawMenuScreen();
     });
 
@@ -264,6 +269,7 @@ function setupEventListeners() {
     document.getElementById('icon-home')?.addEventListener('click', exitGame);
     document.getElementById('icon-stars')?.addEventListener('click', () => {
         state.starsEnabled = !state.starsEnabled;
+        saveSettings();
         drawIcon('icon-stars', 'stars', state.starsEnabled);
     });
     document.getElementById('icon-music')?.addEventListener('click', () => {

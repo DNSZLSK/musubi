@@ -2,7 +2,7 @@
 // AUDIO MANAGER - Gestion de la musique et des sons
 // ============================================================================
 
-import { state } from '../state.js';
+import { state, saveSettings } from '../state.js';
 import { AUDIO_CONFIG } from '../constants.js';
 
 let bgMusic = null;
@@ -15,6 +15,7 @@ export function initAudio() {
     bgMusic = new Audio(AUDIO_CONFIG.musicTracks[0]);
     bgMusic.loop = false;
     bgMusic.volume = AUDIO_CONFIG.defaultVolume;
+    bgMusic.muted = state.musicMuted;
 
     bgMusic.addEventListener('ended', () => {
         state.currentTrack = (state.currentTrack + 1) % AUDIO_CONFIG.musicTracks.length;
@@ -113,6 +114,7 @@ export function stopMusic() {
  */
 export function toggleMute() {
     state.musicMuted = !state.musicMuted;
+    saveSettings();
 
     if (bgMusic) {
         bgMusic.muted = state.musicMuted;

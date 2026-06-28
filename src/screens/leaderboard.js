@@ -6,7 +6,7 @@ import { state } from '../state.js';
 import { getColor, formatScore } from '../utils.js';
 import { drawCenteredText, drawScanlineText, getTextWidth } from '../renderer/scanline.js';
 import { drawChronoToggle } from './difficulty.js';
-import { fetchLeaderboard, getCurrentScores } from '../api/leaderboard.js';
+import { fetchLeaderboard } from '../api/leaderboard.js';
 
 const MODE_TITLES = ['TRAINING 4X4', 'CHALLENGE 5X5', 'EXPERT 6X6'];
 

@@ -6,10 +6,10 @@ import { CHRONO_CONFIG } from './constants.js';
 
 // État du jeu
 export const state = {
-    // Paramètres
-    starsEnabled: true,
-    musicMuted: false,
-    currentTheme: 0,
+    // Paramètres (persistés dans localStorage)
+    starsEnabled: localStorage.getItem('musubi_stars') !== 'false',
+    musicMuted: localStorage.getItem('musubi_muted') === 'true',
+    currentTheme: Number(localStorage.getItem('musubi_theme')) || 0,
 
     scoreSubmitted: false,
 
@@ -81,6 +81,9 @@ export function resetGame() {
     state.numbers = [];
     state.animations = [];
     state.scoreSubmitted = false;
+    state.meltActive = false;
+    state.meltProgress = 0;
+    state.meltPhase = 0;
 }
 
 export function resetChrono() {
@@ -95,4 +98,10 @@ export function resetChrono() {
 export function saveNickname(name) {
     state.nickname = name || 'PLAYER';
     localStorage.setItem('musubi_nickname', state.nickname);
+}
+
+export function saveSettings() {
+    localStorage.setItem('musubi_stars', String(state.starsEnabled));
+    localStorage.setItem('musubi_muted', String(state.musicMuted));
+    localStorage.setItem('musubi_theme', String(state.currentTheme));
 }

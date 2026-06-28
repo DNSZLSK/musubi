@@ -129,6 +129,9 @@ function gameLoop() {
  * Gère le clic sur le puzzle
  */
 export function handlePuzzleClick(event) {
+    // Ignore les clics pendant l'animation de victoire (évite le re-comptage de score)
+    if (state.meltActive) return;
+
     const canvas = document.getElementById('puzzle-canvas');
     if (!canvas) return;
 

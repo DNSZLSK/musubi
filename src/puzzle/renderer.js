@@ -132,8 +132,6 @@ function drawCircles(ctx, size, cellSize, circleRadius, color) {
 }
 
 function drawMeltingCircle(ctx, cx, cy, radius, color, fillAmount) {
-    const rgb = hexToRgb(color);
-    
     // Contour
     ctx.fillStyle = color;
     const thickness = 4;
