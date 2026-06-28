@@ -6,6 +6,8 @@ import { state, resetGame, resetChrono } from '../state.js';
 import { getColor, formatScore } from '../utils.js';
 import { drawCenteredText } from '../renderer/scanline.js';
 import { submitScore } from '../api/leaderboard.js';
+import { startGame } from './game.js';
+import { showScreen } from './index.js';
 
 /**
  * Dessine l'écran de game over
@@ -75,10 +77,7 @@ export function handleRestart() {
     resetGame();
     resetChrono();
 
-    // Import dynamique pour éviter les dépendances circulaires
-    import('./game.js').then(({ startGame }) => {
-        startGame(gridSize);
-    });
+    startGame(gridSize);
 }
 
 /**
@@ -88,7 +87,5 @@ export function handleBackToMenu() {
     resetGame();
     resetChrono();
 
-    import('./index.js').then(({ showScreen }) => {
-        showScreen('menu');
-    });
+    showScreen('menu');
 }

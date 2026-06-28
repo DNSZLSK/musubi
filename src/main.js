@@ -24,7 +24,8 @@ import {
     startNicknameInput,
     handleNicknameInput,
     saveCurrentNickname,
-    stopNicknameInput
+    stopNicknameInput,
+    drawNicknameInput
 } from './screens/nickname.js';
 import {
     nextLeaderboardMode,
@@ -288,7 +289,7 @@ function setupEventListeners() {
     });
     document.getElementById('hidden-input')?.addEventListener('blur', () => {
         if (state.nicknameActive) {
-            import('./screens/nickname.js').then((m) => m.drawNicknameInput());
+            drawNicknameInput();
         }
     });
     document.getElementById('nickname-save')?.addEventListener('click', () => {

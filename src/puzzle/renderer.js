@@ -82,13 +82,25 @@ function drawLines(ctx, size, cellSize, circleRadius, lineWidth, color) {
 }
 
 function drawNumbers(ctx, size, cellSize, color) {
+    const rgb = hexToRgb(color);
+    const dimColor = `rgba(${rgb.r},${rgb.g},${rgb.b},0.22)`;
+
     for (let y = 0; y < size - 1; y++) {
         for (let x = 0; x < size - 1; x++) {
             const cx = (x + 1) * cellSize;
             const cy = (y + 1) * cellSize;
+
+            // Indice satisfait : la somme des 4 cercles voisins égale le nombre
+            let count = 0;
+            if (state.circles[y][x].filled) count++;
+            if (state.circles[y][x + 1].filled) count++;
+            if (state.circles[y + 1][x].filled) count++;
+            if (state.circles[y + 1][x + 1].filled) count++;
+            const satisfied = count === state.numbers[y][x];
+
             const num = state.numbers[y][x].toString();
             const textWidth = getTextWidth(num, 4);
-            drawScanlineText(ctx, num, cx - textWidth / 2, cy - 14, 4, color);
+            drawScanlineText(ctx, num, cx - textWidth / 2, cy - 14, 4, satisfied ? dimColor : color);
         }
     }
 }
