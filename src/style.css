@@ -420,3 +420,43 @@ canvas {
         outline-offset: 6px;
     }
 }
+
+/* ===== ROTATE PROMPT (mobile paysage) ===== */
+#rotate-overlay {
+    display: none;
+}
+
+/* Uniquement sur mobile en paysage (écran court) — n'affecte pas le bureau */
+@media (orientation: landscape) and (max-height: 500px) {
+    #rotate-overlay {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 100000;
+        background: #000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Masque le reste pour éviter tout layout cassé en paysage */
+    #game-container,
+    #preloader {
+        display: none !important;
+    }
+
+    .rotate-msg {
+        text-align: center;
+        font-family: monospace;
+        font-size: 24px;
+        line-height: 1.8;
+        letter-spacing: 2px;
+        color: var(--color, #5c5);
+        text-shadow:
+            0 0 8px var(--color, #5c5),
+            0 0 16px var(--color, #5c5);
+    }
+
+    .rotate-msg::first-line {
+        font-size: 48px;
+    }
+}

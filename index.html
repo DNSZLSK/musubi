@@ -29,6 +29,11 @@
     <!-- Hidden input for mobile keyboard -->
     <input type="text" id="hidden-input" maxlength="10" autocomplete="off">
     
+    <!-- Rotate prompt (mobile paysage : le jeu est conçu en portrait) -->
+    <div id="rotate-overlay">
+        <div class="rotate-msg">&#8635;<br>ROTATE TO PORTRAIT</div>
+    </div>
+
     <!-- Preloader -->
     <div id="preloader">
         <canvas id="preloader-canvas" width="300" height="120"></canvas>
@@ -149,7 +154,10 @@
     <script type="module" src="/src/main.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/musubi/sw.js');
+            navigator.serviceWorker
+                .register('/musubi/sw.js', { updateViaCache: 'none' })
+                .then((reg) => reg.update())
+                .catch(() => {});
         }
     </script>
 </body>
