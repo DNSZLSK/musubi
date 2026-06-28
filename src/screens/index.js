@@ -10,6 +10,7 @@ import { drawHowtoScreen } from './howto.js';
 import { drawNicknameScreen, stopNicknameInput } from './nickname.js';
 import { drawLeaderboardScreen } from './leaderboard.js';
 import { drawGameoverScreen } from './gameover.js';
+import { drawDailyResultScreen } from './daily.js';
 
 /**
  * Affiche un écran
@@ -57,6 +58,9 @@ export function showScreen(screenId) {
         break;
     case 'gameover':
         drawGameoverScreen();
+        break;
+    case 'daily-result':
+        drawDailyResultScreen();
         break;
     }
 }

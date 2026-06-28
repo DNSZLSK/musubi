@@ -12,6 +12,7 @@ export function drawMenuScreen() {
     const color = getColor();
 
     const items = [
+        { id: 'menu-daily', text: 'DAILY PUZZLE' },
         { id: 'menu-newgame', text: 'NEW GAME' },
         { id: 'menu-leaderboard', text: 'LEADERBOARD' },
         { id: 'menu-nickname', text: 'YOUR NICKNAME' },

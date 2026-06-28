@@ -99,9 +99,22 @@ body.theme-pink {
 #howto-screen,
 #nickname-screen,
 #leaderboard-screen,
-#gameover-screen {
+#gameover-screen,
+#daily-result-screen {
     justify-content: space-between;
     padding: 60px 20px 40px;
+}
+
+/* Difficulté : groupe centré (supprime la bande vide), BACK ancré en bas */
+#difficulty-screen {
+    justify-content: center;
+    gap: 30px;
+}
+
+#difficulty-screen #diff-back {
+    position: absolute;
+    bottom: 40px;
+    bottom: calc(40px + env(safe-area-inset-bottom));
 }
 
 .content {
@@ -223,6 +236,10 @@ body.theme-pink #logo-img {
 #mode-canvas {
     margin-top: 25px;
     filter: drop-shadow(0 0 5px var(--color)) drop-shadow(0 0 12px var(--color));
+}
+
+#hint-btn {
+    margin-top: 18px;
 }
 
 #timer-canvas {

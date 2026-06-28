@@ -18,7 +18,8 @@ import {
 } from './audio/manager.js';
 import { drawIcon } from './renderer/icons.js';
 import { drawCenteredText } from './renderer/scanline.js';
-import { startGame, handlePuzzleClick, exitGame } from './screens/game.js';
+import { startGame, handlePuzzleClick, exitGame, useHint } from './screens/game.js';
+import { startDaily } from './screens/daily.js';
 import { drawChronoToggle } from './screens/difficulty.js';
 import {
     startNicknameInput,
@@ -75,12 +76,13 @@ function init() {
 
 // Configuration des éléments navigables par écran
 const SCREEN_NAV_CONFIG = {
-    menu: ['menu-newgame', 'menu-leaderboard', 'menu-nickname', 'menu-howto', 'menu-color'],
+    menu: ['menu-daily', 'menu-newgame', 'menu-leaderboard', 'menu-nickname', 'menu-howto', 'menu-color'],
     difficulty: ['diff-training', 'diff-challenge', 'diff-expert', 'chrono-toggle', 'diff-back'],
     howto: ['howto-back'],
     nickname: ['nickname-input-canvas', 'nickname-save', 'nickname-back'],
     leaderboard: ['lb-chrono-title', 'lb-prev', 'lb-next', 'leaderboard-back'],
     gameover: ['gameover-restart', 'gameover-menu'],
+    'daily-result': ['daily-back'],
     game: [] // Pas de navigation clavier en jeu
 };
 
@@ -132,6 +134,9 @@ function handleKeyboardNavigation(e) {
     if (items.length === 0) {
         if (e.key === 'Escape' && screen === 'game') {
             exitGame();
+            e.preventDefault();
+        } else if ((e.key === 'h' || e.key === 'H') && screen === 'game') {
+            useHint();
             e.preventDefault();
         }
         return;
@@ -209,6 +214,10 @@ function handleEscapeKey(screen) {
     case 'gameover':
         handleBackToMenu();
         break;
+    case 'daily-result':
+        state.dailyMode = false;
+        showScreen('menu');
+        break;
     case 'game':
         exitGame();
         break;
@@ -236,6 +245,7 @@ function setupEventListeners() {
     });
 
     // MENU
+    document.getElementById('menu-daily')?.addEventListener('click', () => startDaily());
     document.getElementById('menu-newgame')?.addEventListener('click', () => {
         if (state.nickname === 'PLAYER') {
             showScreen('nickname');
@@ -267,6 +277,7 @@ function setupEventListeners() {
 
     // GAME
     document.getElementById('puzzle-canvas')?.addEventListener('click', handlePuzzleClick);
+    document.getElementById('hint-btn')?.addEventListener('click', useHint);
     document.getElementById('icon-home')?.addEventListener('click', exitGame);
     document.getElementById('icon-stars')?.addEventListener('click', () => {
         state.starsEnabled = !state.starsEnabled;
@@ -319,6 +330,12 @@ function setupEventListeners() {
     // GAMEOVER
     document.getElementById('gameover-restart')?.addEventListener('click', handleRestart);
     document.getElementById('gameover-menu')?.addEventListener('click', handleBackToMenu);
+
+    // DAILY RESULT
+    document.getElementById('daily-back')?.addEventListener('click', () => {
+        state.dailyMode = false;
+        showScreen('menu');
+    });
 }
 
 // ============================================================================

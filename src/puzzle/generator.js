@@ -14,10 +14,13 @@ const MAX_ATTEMPTS = 200;
  * Génère un nouveau puzzle à solution unique.
  * Régénère tant que le puzzle est trivial (grille vide déjà gagnante)
  * ou admet plusieurs solutions.
+ *
+ * @param {() => number} [rng=Math.random] - source aléatoire (déterministe pour le daily)
  */
-export function generatePuzzle() {
+export function generatePuzzle(rng = Math.random) {
     const size = state.gridSize;
     let attempts = 0;
+    state.hintsUsed = 0;
 
     do {
         attempts++;
@@ -30,7 +33,7 @@ export function generatePuzzle() {
             for (let x = 0; x < size; x++) {
                 state.circles[y][x] = {
                     filled: false,
-                    solution: Math.random() < FILL_DENSITY
+                    solution: rng() < FILL_DENSITY
                 };
             }
         }

@@ -47,7 +47,8 @@ export const state = {
         expert: [],
         training_chrono: [],
         challenge_chrono: [],
-        expert_chrono: []
+        expert_chrono: [],
+        daily: []
     },
 
     // Cache pour preload leaderboard
@@ -57,7 +58,8 @@ export const state = {
         expert: [],
         training_chrono: [],
         challenge_chrono: [],
-        expert_chrono: []
+        expert_chrono: [],
+        daily: []
     },
 
     // Audio
@@ -70,6 +72,15 @@ export const state = {
     meltActive: false,
     meltProgress: 0,
     meltPhase: 0, // 0 = fill, 1 = fade
+
+    // Hints (indices révélés)
+    hintsUsed: 0,
+
+    // Mode daily (puzzle du jour seedé)
+    dailyMode: false,
+    dailyElapsed: 0,
+    dailyInterval: null,
+    dailyAlreadyDone: false,
 
 };
 
@@ -84,6 +95,7 @@ export function resetGame() {
     state.meltActive = false;
     state.meltProgress = 0;
     state.meltPhase = 0;
+    state.hintsUsed = 0;
 }
 
 export function resetChrono() {

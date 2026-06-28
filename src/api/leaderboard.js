@@ -34,7 +34,8 @@ export async function fetchLeaderboard() {
             expert: (data.expert || []).sort((a, b) => b.score - a.score),
             training_chrono: (data.training_chrono || []).sort((a, b) => b.score - a.score),
             challenge_chrono: (data.challenge_chrono || []).sort((a, b) => b.score - a.score),
-            expert_chrono: (data.expert_chrono || []).sort((a, b) => b.score - a.score)
+            expert_chrono: (data.expert_chrono || []).sort((a, b) => b.score - a.score),
+            daily: (data.daily || []).sort((a, b) => b.score - a.score)
         };
 
         // Met à jour le state
@@ -89,25 +90,14 @@ function showNotification(message, isError = false) {
 }
 
 /**
- * Soumet un score au leaderboard avec retry
+ * Soumet un score au leaderboard pour un mode donné, avec retry et feedback.
  */
-export async function submitScore(score, gridSize, retries = 3) {
-    if (score <= 0) return false;
-
-    const modeNames = {
-        4: 'training',
-        5: 'challenge',
-        6: 'expert'
-    };
-
-    const modeStr = modeNames[gridSize] || 'training';
-    const finalMode = state.chronoEnabled ? `${modeStr}_chrono` : modeStr;
-
+async function postScore(score, mode, retries = 3) {
     const params = new URLSearchParams({
         action: 'submit',
         nickname: state.nickname,
         score: score,
-        mode: finalMode
+        mode: mode
     });
 
     const url = `${LEADERBOARD_URL}?${params.toString()}`;
@@ -148,6 +138,27 @@ export async function submitScore(score, gridSize, retries = 3) {
     }
 
     return false;
+}
+
+/**
+ * Soumet un score de partie classique (mode dérivé de la taille + chrono).
+ */
+export async function submitScore(score, gridSize) {
+    if (score <= 0) return false;
+
+    const modeNames = { 4: 'training', 5: 'challenge', 6: 'expert' };
+    const modeStr = modeNames[gridSize] || 'training';
+    const finalMode = state.chronoEnabled ? `${modeStr}_chrono` : modeStr;
+
+    return postScore(score, finalMode);
+}
+
+/**
+ * Soumet un score du puzzle du jour.
+ */
+export async function submitDailyScore(score) {
+    if (score <= 0) return false;
+    return postScore(score, 'daily');
 }
 
 /**
