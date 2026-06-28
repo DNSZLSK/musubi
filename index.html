@@ -24,13 +24,18 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MUSUBI">
     <link rel="apple-touch-icon" href="/musubi/Images/icon-192.png">
-  <script type="module" crossorigin src="/musubi/assets/index-BgYmS6JR.js"></script>
-  <link rel="stylesheet" crossorigin href="/musubi/assets/index-CiwUmwMb.css">
+  <script type="module" crossorigin src="/musubi/assets/index-DyE95x3f.js"></script>
+  <link rel="stylesheet" crossorigin href="/musubi/assets/index-DEzjef9K.css">
 </head>
 <body>
     <!-- Hidden input for mobile keyboard -->
     <input type="text" id="hidden-input" maxlength="10" autocomplete="off">
     
+    <!-- Rotate prompt (mobile paysage : le jeu est conçu en portrait) -->
+    <div id="rotate-overlay">
+        <div class="rotate-msg">&#8635;<br>ROTATE TO PORTRAIT</div>
+    </div>
+
     <!-- Preloader -->
     <div id="preloader">
         <canvas id="preloader-canvas" width="300" height="120"></canvas>
@@ -150,7 +155,10 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/musubi/sw.js');
+            navigator.serviceWorker
+                .register('/musubi/sw.js', { updateViaCache: 'none' })
+                .then((reg) => reg.update())
+                .catch(() => {});
         }
     </script>
 </body>
