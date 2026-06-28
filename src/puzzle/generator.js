@@ -3,14 +3,24 @@
 // ============================================================================
 
 import { state } from '../state.js';
+import { hasUniqueSolution } from './solver.js';
+
+// Densité de remplissage de la solution aléatoire
+const FILL_DENSITY = 0.35;
+// Garde-fou : nombre max de régénérations avant de renoncer à l'unicité
+const MAX_ATTEMPTS = 200;
 
 /**
- * Génère un nouveau puzzle
+ * Génère un nouveau puzzle à solution unique.
+ * Régénère tant que le puzzle est trivial (grille vide déjà gagnante)
+ * ou admet plusieurs solutions.
  */
 export function generatePuzzle() {
     const size = state.gridSize;
+    let attempts = 0;
 
     do {
+        attempts++;
         state.circles = [];
         state.numbers = [];
 
@@ -20,7 +30,7 @@ export function generatePuzzle() {
             for (let x = 0; x < size; x++) {
                 state.circles[y][x] = {
                     filled: false,
-                    solution: Math.random() < 0.35
+                    solution: Math.random() < FILL_DENSITY
                 };
             }
         }
@@ -37,7 +47,10 @@ export function generatePuzzle() {
                 state.numbers[y][x] = count;
             }
         }
-    } while (checkWin()); // Régénère si la grille vide est déjà gagnante
+    } while (
+        (checkWin() || !hasUniqueSolution(state.numbers, size)) &&
+        attempts < MAX_ATTEMPTS
+    );
 }
 
 /**

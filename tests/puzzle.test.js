@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { state } from '../src/state.js';
 import { generatePuzzle, checkWin, toggleCircle } from '../src/puzzle/generator.js';
+import { hasUniqueSolution } from '../src/puzzle/solver.js';
 
 describe('generatePuzzle', () => {
     beforeEach(() => {
@@ -45,6 +46,18 @@ describe('generatePuzzle', () => {
         generatePuzzle();
         expect(state.circles.length).toBe(6);
         expect(state.numbers.length).toBe(5);
+    });
+
+    it('génère uniquement des puzzles à solution unique', () => {
+        for (const size of [4, 5, 6]) {
+            state.gridSize = size;
+            for (let i = 0; i < 15; i++) {
+                generatePuzzle();
+                expect(hasUniqueSolution(state.numbers, size)).toBe(true);
+                // la solution générée n'est jamais la grille vide (puzzle non trivial)
+                expect(checkWin()).toBe(false);
+            }
+        }
     });
 });
 
