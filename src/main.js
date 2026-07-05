@@ -20,7 +20,7 @@ import { drawIcon } from './renderer/icons.js';
 import { drawCenteredText } from './renderer/scanline.js';
 import { startGame, handlePuzzleClick, exitGame, useHint } from './screens/game.js';
 import { startDaily } from './screens/daily.js';
-import { drawChronoToggle } from './screens/difficulty.js';
+import { drawChronoToggle, drawCluesToggle } from './screens/difficulty.js';
 import {
     startNicknameInput,
     handleNicknameInput,
@@ -77,7 +77,7 @@ function init() {
 // Configuration des éléments navigables par écran
 const SCREEN_NAV_CONFIG = {
     menu: ['menu-daily', 'menu-newgame', 'menu-leaderboard', 'menu-nickname', 'menu-howto', 'menu-color'],
-    difficulty: ['diff-training', 'diff-challenge', 'diff-expert', 'chrono-toggle', 'diff-back'],
+    difficulty: ['diff-training', 'diff-challenge', 'diff-expert', 'chrono-toggle', 'diff-level', 'diff-back'],
     howto: ['howto-back'],
     nickname: ['nickname-input-canvas', 'nickname-save', 'nickname-back'],
     leaderboard: ['lb-chrono-title', 'lb-prev', 'lb-next', 'leaderboard-back'],
@@ -165,6 +165,11 @@ function handleKeyboardNavigation(e) {
             state.chronoEnabled = false;
             drawChronoToggle('chrono-toggle', state.chronoEnabled);
             playBeep();
+        } else if (screen === 'difficulty' && items[state.selectedIndex] === 'diff-level') {
+            state.difficulty = (state.difficulty + 2) % 3;
+            drawCluesToggle('diff-level', state.difficulty);
+            saveSettings();
+            playBeep();
         }
         e.preventDefault();
         break;
@@ -176,6 +181,11 @@ function handleKeyboardNavigation(e) {
         } else if (screen === 'difficulty' && items[state.selectedIndex] === 'chrono-toggle') {
             state.chronoEnabled = true;
             drawChronoToggle('chrono-toggle', state.chronoEnabled);
+            playBeep();
+        } else if (screen === 'difficulty' && items[state.selectedIndex] === 'diff-level') {
+            state.difficulty = (state.difficulty + 1) % 3;
+            drawCluesToggle('diff-level', state.difficulty);
+            saveSettings();
             playBeep();
         }
         e.preventDefault();
@@ -272,6 +282,12 @@ function setupEventListeners() {
     document.getElementById('chrono-toggle')?.addEventListener('click', () => {
         state.chronoEnabled = !state.chronoEnabled;
         drawChronoToggle('chrono-toggle', state.chronoEnabled);
+        playBeep();
+    });
+    document.getElementById('diff-level')?.addEventListener('click', () => {
+        state.difficulty = (state.difficulty + 1) % 3;
+        drawCluesToggle('diff-level', state.difficulty);
+        saveSettings();
         playBeep();
     });
 

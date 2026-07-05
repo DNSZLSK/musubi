@@ -4,12 +4,20 @@
 
 import { CHRONO_CONFIG } from './constants.js';
 
+// Lit le niveau de difficulté persisté (0 est valide -> pas de `|| 0`)
+function loadDifficulty() {
+    const v = Number(localStorage.getItem('musubi_difficulty'));
+    return [0, 1, 2].includes(v) ? v : 1;
+}
+
 // État du jeu
 export const state = {
     // Paramètres (persistés dans localStorage)
     starsEnabled: localStorage.getItem('musubi_stars') !== 'false',
     musicMuted: localStorage.getItem('musubi_muted') === 'true',
     currentTheme: Number(localStorage.getItem('musubi_theme')) || 0,
+    // Difficulté = rareté des indices (0 ALL, 1 SOME, 2 FEW)
+    difficulty: loadDifficulty(),
 
     scoreSubmitted: false,
 
@@ -25,6 +33,7 @@ export const state = {
     // Données du puzzle
     circles: [],
     numbers: [],
+    clueVisible: [], // masque : quels indices sont affichés (le reste est à déduire)
     animations: [],
 
     // Chrono
@@ -116,4 +125,5 @@ export function saveSettings() {
     localStorage.setItem('musubi_stars', String(state.starsEnabled));
     localStorage.setItem('musubi_muted', String(state.musicMuted));
     localStorage.setItem('musubi_theme', String(state.currentTheme));
+    localStorage.setItem('musubi_difficulty', String(state.difficulty));
 }

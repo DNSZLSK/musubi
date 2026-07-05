@@ -4,11 +4,14 @@
 
 import { state } from '../state.js';
 import { hasUniqueSolution } from './solver.js';
+import { reduceClues, targetDepthFor } from './difficulty.js';
 
 // Densité de remplissage de la solution aléatoire
 const FILL_DENSITY = 0.35;
 // Garde-fou : nombre max de régénérations avant de renoncer à l'unicité
 const MAX_ATTEMPTS = 200;
+// Niveau de rareté des indices imposé au puzzle du jour (fixe pour tous)
+const DAILY_DIFFICULTY = 1;
 
 /**
  * Génère un nouveau puzzle à solution unique.
@@ -54,6 +57,11 @@ export function generatePuzzle(rng = Math.random) {
         (checkWin() || !hasUniqueSolution(state.numbers, size)) &&
         attempts < MAX_ATTEMPTS
     );
+
+    // Difficulté = rareté des indices : on masque des nombres tant que la
+    // solution reste unique. Le joueur doit alors raisonner, pas juste scanner.
+    const level = state.dailyMode ? DAILY_DIFFICULTY : state.difficulty;
+    state.clueVisible = reduceClues(state.numbers, size, rng, targetDepthFor(level, size));
 }
 
 /**

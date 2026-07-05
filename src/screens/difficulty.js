@@ -4,6 +4,7 @@
 
 import { state } from '../state.js';
 import { getColor } from '../utils.js';
+import { DIFFICULTIES } from '../puzzle/difficulty.js';
 import {
     drawCenteredText,
     drawScanlineText,
@@ -44,6 +45,9 @@ export function drawDifficultyScreen() {
 
     // Toggle chrono
     drawChronoToggle('chrono-toggle', state.chronoEnabled);
+
+    // Sélecteur de difficulté (rareté des indices)
+    drawCluesToggle('diff-level', state.difficulty);
 }
 
 /**
@@ -101,4 +105,51 @@ export function drawChronoToggle(canvasId, isOn) {
         );
         drawScanlineText(ctx, 'ON', onBoxX, y, pixelSize, '#000');
     }
+}
+
+/**
+ * Dessine le sélecteur de difficulté "CLUES  ALL SOME FEW" (option sélectionnée
+ * encadrée). Moins d'indices = plus dur.
+ */
+export function drawCluesToggle(canvasId, level) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const color = getColor();
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const pixelSize = 3;
+    const boxPad = 4;
+    const textHeight = 7 * pixelSize;
+    const gap = 14;
+    const y = 12;
+
+    const label = 'CLUES';
+    const labelWidth = getTextWidth(label, pixelSize);
+    const optWidths = DIFFICULTIES.map((d) => getTextWidth(d.label, pixelSize));
+
+    // Largeur totale pour centrer : label + gap + (boîtes + gaps)
+    let optionsWidth = 0;
+    optWidths.forEach((w, i) => {
+        optionsWidth += w + boxPad * 2;
+        if (i < optWidths.length - 1) optionsWidth += gap;
+    });
+    const totalWidth = labelWidth + gap + optionsWidth;
+    const startX = (canvas.width - totalWidth) / 2;
+
+    drawScanlineText(ctx, label, startX, y, pixelSize, color);
+
+    let x = startX + labelWidth + gap + boxPad;
+    DIFFICULTIES.forEach((d, i) => {
+        const w = optWidths[i];
+        if (i === level) {
+            drawScanlineRect(ctx, x - boxPad, y - boxPad, w + boxPad * 2, textHeight + boxPad * 2, color);
+            drawScanlineText(ctx, d.label, x, y, pixelSize, '#000');
+        } else {
+            drawScanlineText(ctx, d.label, x, y, pixelSize, color);
+        }
+        x += w + boxPad * 2 + gap;
+    });
 }

@@ -87,6 +87,9 @@ function drawNumbers(ctx, size, cellSize, color) {
 
     for (let y = 0; y < size - 1; y++) {
         for (let x = 0; x < size - 1; x++) {
+            // Indice masqué (difficulté) : à déduire, on ne l'affiche pas
+            if (state.clueVisible?.[y]?.[x] === false) continue;
+
             const cx = (x + 1) * cellSize;
             const cy = (y + 1) * cellSize;
 
