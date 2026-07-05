@@ -1,4 +1,4 @@
-const CACHE_NAME = 'musubi-2026-06-28T10-48-36';
+const CACHE_NAME = 'musubi-2026-07-05T17-14-16';
 
 // Coquille minimale. L'audio (lourd) est mis en cache à la volée, pour qu'un
 // MP3 indisponible ne fasse jamais échouer l'installation / la mise à jour.
