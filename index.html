@@ -24,8 +24,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MUSUBI">
     <link rel="apple-touch-icon" href="/musubi/Images/icon-192.png">
-  <script type="module" crossorigin src="/musubi/assets/index-D2FU8VKl.js"></script>
-  <link rel="stylesheet" crossorigin href="/musubi/assets/index-DEzjef9K.css">
+  <script type="module" crossorigin src="/musubi/assets/index-Ck1VEx1T.js"></script>
+  <link rel="stylesheet" crossorigin href="/musubi/assets/index-WemRMBtU.css">
 </head>
 <body>
     <!-- Hidden input for mobile keyboard -->
@@ -50,35 +50,40 @@
         <!-- MENU SCREEN -->
         <div id="menu-screen" class="screen active">
             <img id="logo-img" src="/musubi/Images/musubi%20logo%204.png" alt="MUSUBI">
-            <canvas class="menu-item" id="menu-daily" width="280" height="45"></canvas>
-            <canvas class="menu-item" id="menu-newgame" width="220" height="45"></canvas>
-            <canvas class="menu-item" id="menu-leaderboard" width="280" height="45"></canvas>
-            <canvas class="menu-item" id="menu-nickname" width="320" height="45"></canvas>
-            <canvas class="menu-item" id="menu-howto" width="260" height="45"></canvas>
-            <canvas class="menu-item" id="menu-color" width="160" height="45" style="margin-top:15px;"></canvas>
+            <canvas class="menu-item menu-primary" id="menu-daily" width="340" height="55" role="button" aria-label="Daily puzzle"></canvas>
+            <canvas class="menu-item menu-primary" id="menu-newgame" width="340" height="55" role="button" aria-label="New game"></canvas>
+            <canvas class="menu-item" id="menu-leaderboard" width="280" height="45" role="button" aria-label="Leaderboard"></canvas>
+            <canvas class="menu-item" id="menu-howto" width="260" height="45" role="button" aria-label="How to play (tutorial)"></canvas>
+            <div class="menu-settings">
+                <canvas class="menu-item" id="menu-nickname" width="200" height="32" role="button" aria-label="Change nickname"></canvas>
+                <canvas class="menu-item" id="menu-color" width="120" height="32" role="button" aria-label="Change color theme"></canvas>
+            </div>
             <div id="credits-footer">Inspired by Glyn</div>
         </div>
 
         <!-- DIFFICULTY SCREEN -->
         <div id="difficulty-screen" class="screen">
-            <canvas id="diff-title" width="300" height="50"></canvas>
-            <div class="content">
-                <canvas class="menu-item" id="chrono-toggle" width="340" height="45"></canvas>
-                <canvas class="menu-item" id="diff-level" width="380" height="45"></canvas>
-                <canvas class="menu-item" id="diff-training" width="340" height="45"></canvas>
-                <canvas class="menu-item" id="diff-challenge" width="360" height="45"></canvas>
-                <canvas class="menu-item" id="diff-expert" width="300" height="45"></canvas>
+            <canvas id="diff-title" width="300" height="50" role="img" aria-label="Select mode"></canvas>
+            <div class="settings-box">
+                <canvas class="menu-item" id="diff-level" width="380" height="45" role="button" aria-label="Difficulty: easy, normal or hard"></canvas>
+                <canvas class="menu-item" id="chrono-toggle" width="340" height="45" role="button" aria-label="Chrono on or off"></canvas>
             </div>
-            <canvas class="menu-item" id="diff-back" width="120" height="40"></canvas>
+            <canvas id="diff-play-label" width="300" height="30" role="img" aria-label="Play"></canvas>
+            <div class="size-row">
+                <canvas class="menu-item size-btn" id="diff-training" width="110" height="70" role="button" aria-label="Play 4 by 4"></canvas>
+                <canvas class="menu-item size-btn" id="diff-challenge" width="110" height="70" role="button" aria-label="Play 5 by 5"></canvas>
+                <canvas class="menu-item size-btn" id="diff-expert" width="110" height="70" role="button" aria-label="Play 6 by 6"></canvas>
+            </div>
+            <canvas class="menu-item" id="diff-back" width="120" height="40" role="button" aria-label="Back"></canvas>
         </div>
 
         <!-- GAME SCREEN -->
         <div id="game-screen" class="screen">
             <div id="top-bar">
                 <div id="top-icons">
-                    <canvas class="top-icon" id="icon-stars" width="50" height="45"></canvas>
-                    <canvas class="top-icon" id="icon-music" width="50" height="45"></canvas>
-                    <canvas class="top-icon" id="icon-home" width="50" height="45"></canvas>
+                    <canvas class="top-icon" id="icon-stars" width="50" height="45" role="button" aria-label="Toggle stars"></canvas>
+                    <canvas class="top-icon" id="icon-music" width="50" height="45" role="button" aria-label="Toggle music"></canvas>
+                    <canvas class="top-icon" id="icon-home" width="50" height="45" role="button" aria-label="Back to menu"></canvas>
                 </div>
                 <div id="top-right">
                     <canvas id="timer-canvas" width="140" height="40" style="display:none;"></canvas>
@@ -91,19 +96,14 @@
                 </div>
             </div>
             <div id="puzzle-container">
-                <canvas id="puzzle-canvas" width="340" height="340"></canvas>
-                <canvas id="mode-canvas" width="400" height="40"></canvas>
-                <canvas class="menu-item" id="hint-btn" width="120" height="40"></canvas>
+                <canvas id="tutorial-text" width="400" height="80" role="note" style="display:none;"></canvas>
+                <canvas id="puzzle-canvas" width="340" height="340" role="application" aria-label="Puzzle grid: tap a circle to fill or empty it"></canvas>
+                <canvas id="mode-canvas" width="400" height="40" role="status"></canvas>
+                <div class="action-row">
+                    <canvas class="menu-item" id="undo-btn" width="120" height="40" role="button" aria-label="Undo last move"></canvas>
+                    <canvas class="menu-item" id="reset-btn" width="130" height="40" role="button" aria-label="Clear the grid"></canvas>
+                </div>
             </div>
-        </div>
-
-        <!-- HOWTO SCREEN -->
-        <div id="howto-screen" class="screen">
-            <canvas id="howto-title" width="280" height="50"></canvas>
-            <div class="content">
-                <canvas id="howto-content" width="340" height="320"></canvas>
-            </div>
-            <canvas class="menu-item" id="howto-back" width="120" height="40"></canvas>
         </div>
 
         <!-- NICKNAME SCREEN -->
