@@ -6,7 +6,9 @@ import { CHRONO_CONFIG } from './constants.js';
 
 // Lit le niveau de difficulté persisté (0 est valide -> pas de `|| 0`)
 function loadDifficulty() {
-    const v = Number(localStorage.getItem('musubi_difficulty'));
+    const raw = localStorage.getItem('musubi_difficulty');
+    if (raw === null) return 1; // défaut : NORMAL (Number(null) vaudrait 0)
+    const v = Number(raw);
     return [0, 1, 2].includes(v) ? v : 1;
 }
 
@@ -82,8 +84,16 @@ export const state = {
     meltProgress: 0,
     meltPhase: 0, // 0 = fill, 1 = fade
 
-    // Hints (indices révélés)
-    hintsUsed: 0,
+    // Historique des coups (pour UNDO) : liste de {x, y}
+    history: [],
+
+    // Célébration de victoire (avant le melt)
+    celebrating: false,
+    celebrateProgress: 0,
+    lastPoints: 0,
+
+    // Tutoriel (étape en cours, -1 = inactif)
+    tutorialStep: -1,
 
     // Mode daily (puzzle du jour seedé)
     dailyMode: false,
@@ -104,7 +114,9 @@ export function resetGame() {
     state.meltActive = false;
     state.meltProgress = 0;
     state.meltPhase = 0;
-    state.hintsUsed = 0;
+    state.history = [];
+    state.celebrating = false;
+    state.celebrateProgress = 0;
 }
 
 export function resetChrono() {

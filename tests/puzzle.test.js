@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { state } from '../src/state.js';
 import { generatePuzzle, checkWin, toggleCircle } from '../src/puzzle/generator.js';
-import { hasUniqueSolution } from '../src/puzzle/solver.js';
+import { grade, isConnected, TIER_FOR_LEVEL } from '../src/puzzle/logic.js';
 
 describe('generatePuzzle', () => {
     beforeEach(() => {
@@ -48,16 +48,54 @@ describe('generatePuzzle', () => {
         expect(state.numbers.length).toBe(5);
     });
 
-    it('génère uniquement des puzzles à solution unique', () => {
+    it('génère des puzzles déductibles (donc uniques) au niveau demandé', () => {
         for (const size of [4, 5, 6]) {
             state.gridSize = size;
-            for (let i = 0; i < 15; i++) {
-                generatePuzzle();
-                expect(hasUniqueSolution(state.numbers, size)).toBe(true);
-                // la solution générée n'est jamais la grille vide (puzzle non trivial)
-                expect(checkWin()).toBe(false);
+            for (const level of [0, 1, 2]) {
+                state.difficulty = level;
+                for (let i = 0; i < 5; i++) {
+                    generatePuzzle();
+                    const tier = grade(state.numbers, state.clueVisible, size);
+                    expect(tier).toBeLessThanOrEqual(TIER_FOR_LEVEL[level]);
+                    // la solution générée n'est jamais la grille vide (puzzle non trivial)
+                    expect(checkWin()).toBe(false);
+                }
             }
         }
+    });
+
+    it('la solution forme un seul nœud relié', () => {
+        state.gridSize = 6;
+        for (let i = 0; i < 20; i++) {
+            generatePuzzle();
+            expect(isConnected(state.circles.map((r) => r.map((c) => c.solution)))).toBe(true);
+        }
+    });
+
+    it('cache des indices (sinon la règle du nœud ne sert à rien)', () => {
+        state.gridSize = 6;
+        state.difficulty = 1;
+        let hidden = 0;
+        for (let i = 0; i < 10; i++) {
+            generatePuzzle();
+            hidden += state.clueVisible.flat().filter((v) => !v).length;
+        }
+        expect(hidden / 10).toBeGreaterThan(6);
+    });
+
+    it('le daily est déterministe pour une même graine', () => {
+        const seeded = (seed) => () => {
+            seed = (seed * 1664525 + 1013904223) % 4294967296;
+            return seed / 4294967296;
+        };
+        state.gridSize = 5;
+        state.dailyMode = true;
+        generatePuzzle(seeded(42));
+        const a = JSON.stringify([state.numbers, state.clueVisible]);
+        generatePuzzle(seeded(42));
+        const b = JSON.stringify([state.numbers, state.clueVisible]);
+        state.dailyMode = false;
+        expect(a).toBe(b);
     });
 });
 
@@ -65,37 +103,28 @@ describe('checkWin', () => {
     beforeEach(() => {
         state.gridSize = 2;
         state.circles = [
-            [{ filled: false }, { filled: false }],
-            [{ filled: false }, { filled: false }]
+            [{ filled: false, solution: true }, { filled: false, solution: true }],
+            [{ filled: false, solution: false }, { filled: false, solution: false }]
         ];
-        state.numbers = [[0]];
     });
 
-    it('retourne true quand le puzzle est résolu', () => {
-        // Aucun cercle rempli, nombre = 0 -> victoire
-        state.numbers = [[0]];
-        expect(checkWin()).toBe(true);
-    });
-
-    it('retourne false quand le puzzle n\'est pas résolu', () => {
-        state.numbers = [[2]]; // On attend 2 cercles remplis
+    it('retourne false tant que la grille diffère de la solution', () => {
+        expect(checkWin()).toBe(false);
+        state.circles[0][0].filled = true;
         expect(checkWin()).toBe(false);
     });
 
-    it('compte correctement les cercles remplis', () => {
-        state.numbers = [[2]];
+    it('retourne true quand la grille correspond à la solution', () => {
         state.circles[0][0].filled = true;
         state.circles[0][1].filled = true;
         expect(checkWin()).toBe(true);
     });
 
-    it('vérifie les 4 coins autour de chaque nombre', () => {
-        state.numbers = [[4]];
+    it('retourne false si un cercle de trop est rempli', () => {
         state.circles[0][0].filled = true;
         state.circles[0][1].filled = true;
-        state.circles[1][0].filled = true;
         state.circles[1][1].filled = true;
-        expect(checkWin()).toBe(true);
+        expect(checkWin()).toBe(false);
     });
 });
 

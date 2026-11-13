@@ -26,28 +26,58 @@ export function drawDifficultyScreen() {
         drawCenteredText(ctx, 'SELECT MODE', titleCanvas.width, 10, 4, color);
     }
 
-    // Boutons de mode
-    const buttons = [
-        { id: 'diff-training', text: 'TRAINING  4X4' },
-        { id: 'diff-challenge', text: 'CHALLENGE  5X5' },
-        { id: 'diff-expert', text: 'EXPERT  6X6' },
-        { id: 'diff-back', text: 'BACK' }
-    ];
+    // Libellé au-dessus des tailles : ce sont des boutons qui LANCENT la partie
+    const playLabel = document.getElementById('diff-play-label');
+    if (playLabel) {
+        const ctx = playLabel.getContext('2d');
+        ctx.clearRect(0, 0, playLabel.width, playLabel.height);
+        drawCenteredText(ctx, 'PLAY', playLabel.width, 4, 3, color);
+    }
 
-    buttons.forEach((btn) => {
+    // Boutons de taille (encadrés)
+    const sizes = [
+        { id: 'diff-training', text: '4X4' },
+        { id: 'diff-challenge', text: '5X5' },
+        { id: 'diff-expert', text: '6X6' }
+    ];
+    sizes.forEach((btn) => {
         const canvas = document.getElementById(btn.id);
         if (!canvas) return;
-
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawCenteredText(ctx, btn.text, canvas.width, 12, 3, color);
+        drawFrame(ctx, canvas.width, canvas.height, color);
+        drawCenteredText(ctx, btn.text, canvas.width, 21, 4, color);
     });
+
+    const back = document.getElementById('diff-back');
+    if (back) {
+        const ctx = back.getContext('2d');
+        ctx.clearRect(0, 0, back.width, back.height);
+        drawCenteredText(ctx, 'BACK', back.width, 12, 3, color);
+    }
 
     // Toggle chrono
     drawChronoToggle('chrono-toggle', state.chronoEnabled);
 
-    // Sélecteur de difficulté (rareté des indices)
+    // Sélecteur de difficulté (niveau de raisonnement)
     drawCluesToggle('diff-level', state.difficulty);
+}
+
+/**
+ * Cadre scanline (contour de 3 px) autour d'un bouton
+ */
+function drawFrame(ctx, w, h, color) {
+    ctx.fillStyle = color;
+    const t = 3;
+    for (let y = 0; y < h; y++) {
+        if (y % 2 !== 0) continue;
+        if (y < t || y >= h - t) {
+            ctx.fillRect(0, y, w, 1);
+        } else {
+            ctx.fillRect(0, y, t, 1);
+            ctx.fillRect(w - t, y, t, 1);
+        }
+    }
 }
 
 /**
@@ -108,8 +138,8 @@ export function drawChronoToggle(canvasId, isOn) {
 }
 
 /**
- * Dessine le sélecteur de difficulté "CLUES  ALL SOME FEW" (option sélectionnée
- * encadrée). Moins d'indices = plus dur.
+ * Dessine le sélecteur de difficulté "EASY NORMAL HARD" (option sélectionnée
+ * encadrée). Le niveau = le type de raisonnement exigé par la grille.
  */
 export function drawCluesToggle(canvasId, level) {
     const canvas = document.getElementById(canvasId);
@@ -126,8 +156,6 @@ export function drawCluesToggle(canvasId, level) {
     const gap = 14;
     const y = 12;
 
-    const label = 'CLUES';
-    const labelWidth = getTextWidth(label, pixelSize);
     const optWidths = DIFFICULTIES.map((d) => getTextWidth(d.label, pixelSize));
 
     // Largeur totale pour centrer : label + gap + (boîtes + gaps)
@@ -136,12 +164,9 @@ export function drawCluesToggle(canvasId, level) {
         optionsWidth += w + boxPad * 2;
         if (i < optWidths.length - 1) optionsWidth += gap;
     });
-    const totalWidth = labelWidth + gap + optionsWidth;
-    const startX = (canvas.width - totalWidth) / 2;
+    const startX = (canvas.width - optionsWidth) / 2;
 
-    drawScanlineText(ctx, label, startX, y, pixelSize, color);
-
-    let x = startX + labelWidth + gap + boxPad;
+    let x = startX + boxPad;
     DIFFICULTIES.forEach((d, i) => {
         const w = optWidths[i];
         if (i === level) {

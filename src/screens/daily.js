@@ -45,11 +45,10 @@ function saveDailyState(data) {
 // --- Score -------------------------------------------------------------------
 
 function computeDailyScore() {
-    // Plus rapide + moins d'indices = meilleur score
+    // Plus rapide = meilleur score
     const base = 50000;
     const timePenalty = state.dailyElapsed * 100;
-    const hintPenalty = state.hintsUsed * 8000;
-    return Math.max(500, base - timePenalty - hintPenalty);
+    return Math.max(500, base - timePenalty);
 }
 
 // --- Cycle de vie ------------------------------------------------------------
@@ -65,7 +64,6 @@ export function startDaily() {
     if (saved.lastSolved === today) {
         state.dailyMode = true;
         state.dailyElapsed = saved.lastTime || 0;
-        state.hintsUsed = saved.lastHints || 0;
         state.dailyAlreadyDone = true;
         showScreen('daily-result');
         return;
@@ -90,7 +88,6 @@ export function completeDaily() {
         saved.streak = continues ? (saved.streak || 0) + 1 : 1;
         saved.lastSolved = today;
         saved.lastTime = state.dailyElapsed;
-        saved.lastHints = state.hintsUsed;
         saved.lastScore = score;
         saveDailyState(saved);
         submitDailyScore(score);
@@ -117,8 +114,7 @@ export function drawDailyResultScreen() {
         const ctx = stats.getContext('2d');
         ctx.clearRect(0, 0, stats.width, stats.height);
         drawCenteredText(ctx, `TIME ${formatTime(state.dailyElapsed)}`, stats.width, 5, 3, color);
-        const hintStr = state.hintsUsed > 0 ? `${state.hintsUsed} HINTS` : 'NO HINTS';
-        drawCenteredText(ctx, hintStr, stats.width, 38, 2, color);
+        drawCenteredText(ctx, '5X5 NORMAL', stats.width, 38, 2, color);
         drawCenteredText(ctx, `STREAK ${saved.streak || 0}`, stats.width, 66, 3, color);
     }
 

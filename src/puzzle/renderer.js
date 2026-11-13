@@ -5,6 +5,12 @@
 import { state } from '../state.js';
 import { getColor, getBrightColor, hexToRgb } from '../utils.js';
 import { drawScanlineText, getTextWidth } from '../renderer/scanline.js';
+import { mainGroup } from './logic.js';
+
+// Hauteur réservée hors grille (barre du haut, score, UNDO/RESET, marges)
+const RESERVED_HEIGHT = 240;
+// Hauteur en plus quand la consigne du tutoriel est affichée
+const TUTORIAL_HEIGHT = 90;
 
 /**
  * Dessine le puzzle complet
@@ -18,9 +24,11 @@ export function drawPuzzle() {
     const brightColor = getBrightColor();
     const size = state.gridSize;
 
-    // Taille responsive
-    const maxSize = Math.min(500, window.innerWidth - 40, window.innerHeight - 250);
-    const canvasSize = Math.max(280, maxSize);
+    // Taille responsive (mobile portrait comme PC) : la grille prend la place
+    // disponible sans jamais pousser les boutons hors de l'écran
+    const reserved = RESERVED_HEIGHT + (state.tutorialStep >= 0 ? TUTORIAL_HEIGHT : 0);
+    const maxSize = Math.min(500, window.innerWidth - 32, window.innerHeight - reserved);
+    const canvasSize = Math.floor(Math.max(240, maxSize));
     canvas.width = canvasSize;
     canvas.height = canvasSize;
 
@@ -30,8 +38,8 @@ export function drawPuzzle() {
 
     ctx.clearRect(0, 0, canvasSize, canvasSize);
 
-    // Dessine les lignes
-    drawLines(ctx, size, cellSize, circleRadius, lineWidth, color);
+    // Dessine les lignes (les liens entre cercles remplis s'allument : le nœud)
+    drawLines(ctx, size, cellSize, circleRadius, lineWidth, color, brightColor);
 
     // Dessine les nombres
     drawNumbers(ctx, size, cellSize, brightColor);
@@ -40,8 +48,14 @@ export function drawPuzzle() {
     drawCircles(ctx, size, cellSize, circleRadius, color);
 }
 
-function drawLines(ctx, size, cellSize, circleRadius, lineWidth, color) {
-    ctx.fillStyle = color;
+function isFilled(x, y) {
+    return !state.meltActive && state.circles[y][x].filled;
+}
+
+function drawLines(ctx, size, cellSize, circleRadius, lineWidth, color, brightColor) {
+    const rgb = hexToRgb(color);
+    const dimLine = `rgba(${rgb.r},${rgb.g},${rgb.b},0.45)`;
+    const linkWidth = lineWidth * 2;
 
     for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
@@ -51,11 +65,14 @@ function drawLines(ctx, size, cellSize, circleRadius, lineWidth, color) {
             // Ligne horizontale
             if (x < size - 1) {
                 const nextCx = (x + 1) * cellSize + cellSize / 2;
-                for (let py = 0; py < lineWidth; py++) {
+                const link = isFilled(x, y) && isFilled(x + 1, y);
+                ctx.fillStyle = link ? brightColor : dimLine;
+                const w = link ? linkWidth : lineWidth;
+                for (let py = 0; py < w; py++) {
                     if (py % 2 === 0) {
                         ctx.fillRect(
                             cx + circleRadius,
-                            cy - lineWidth / 2 + py,
+                            cy - w / 2 + py,
                             nextCx - cx - circleRadius * 2,
                             1
                         );
@@ -66,10 +83,13 @@ function drawLines(ctx, size, cellSize, circleRadius, lineWidth, color) {
             // Ligne verticale
             if (y < size - 1) {
                 const nextCy = (y + 1) * cellSize + cellSize / 2;
-                for (let px = 0; px < lineWidth; px++) {
+                const link = isFilled(x, y) && isFilled(x, y + 1);
+                ctx.fillStyle = link ? brightColor : dimLine;
+                const w = link ? linkWidth : lineWidth;
+                for (let px = 0; px < w; px++) {
                     if (px % 2 === 0) {
                         ctx.fillRect(
-                            cx - lineWidth / 2 + px,
+                            cx - w / 2 + px,
                             cy + circleRadius,
                             1,
                             nextCy - cy - circleRadius * 2
@@ -84,31 +104,47 @@ function drawLines(ctx, size, cellSize, circleRadius, lineWidth, color) {
 function drawNumbers(ctx, size, cellSize, color) {
     const rgb = hexToRgb(color);
     const dimColor = `rgba(${rgb.r},${rgb.g},${rgb.b},0.22)`;
+    const hiddenColor = `rgba(${rgb.r},${rgb.g},${rgb.b},0.35)`;
+    const errorColor = '#f55';
+    // En HARD, aucune aide visuelle sur les indices respectés
+    const dimSatisfied = state.dailyMode || state.difficulty < 2;
 
     for (let y = 0; y < size - 1; y++) {
         for (let x = 0; x < size - 1; x++) {
-            // Indice masqué (difficulté) : à déduire, on ne l'affiche pas
-            if (state.clueVisible?.[y]?.[x] === false) continue;
-
             const cx = (x + 1) * cellSize;
             const cy = (y + 1) * cellSize;
 
-            // Indice satisfait : la somme des 4 cercles voisins égale le nombre
+            // Indice masqué : à déduire
+            if (state.clueVisible?.[y]?.[x] === false) {
+                const w = getTextWidth('?', 4);
+                drawScanlineText(ctx, '?', cx - w / 2, cy - 14, 4, hiddenColor);
+                continue;
+            }
+
             let count = 0;
             if (state.circles[y][x].filled) count++;
             if (state.circles[y][x + 1].filled) count++;
             if (state.circles[y + 1][x].filled) count++;
             if (state.circles[y + 1][x + 1].filled) count++;
-            const satisfied = count === state.numbers[y][x];
+            const clue = state.numbers[y][x];
 
-            const num = state.numbers[y][x].toString();
+            // Trop de cercles : erreur visible. Atteint : estompé (sauf 0, qui
+            // serait "satisfait" dès le départ et ne vérifie rien).
+            let c = color;
+            if (count > clue) c = errorColor;
+            else if (dimSatisfied && clue > 0 && count === clue) c = dimColor;
+
+            const num = clue.toString();
             const textWidth = getTextWidth(num, 4);
-            drawScanlineText(ctx, num, cx - textWidth / 2, cy - 14, 4, satisfied ? dimColor : color);
+            drawScanlineText(ctx, num, cx - textWidth / 2, cy - 14, 4, c);
         }
     }
 }
 
 function drawCircles(ctx, size, cellSize, circleRadius, color) {
+    const group = mainGroup(state.circles.map((row) => row.map((c) => c.filled)));
+    const rgb = hexToRgb(color);
+    const detachedColor = `rgba(${rgb.r},${rgb.g},${rgb.b},0.4)`;
     for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
             const cx = x * cellSize + cellSize / 2;
@@ -138,7 +174,12 @@ function drawCircles(ctx, size, cellSize, circleRadius, color) {
                     drawFilledCircleWithAlpha(ctx, cx, cy, radius, color, alpha);
                 }
             } else if (state.circles[y][x].filled) {
-                drawFilledCircle(ctx, cx, cy, radius, color, glowAlpha);
+                // Victoire : tout le nœud pulse. Sinon, morceau détaché = estompé.
+                if (state.celebrating) {
+                    glowAlpha = Math.max(glowAlpha, Math.sin(state.celebrateProgress * Math.PI) * 0.8);
+                }
+                const attached = group[y][x];
+                drawFilledCircle(ctx, cx, cy, radius, attached ? color : detachedColor, glowAlpha);
             } else {
                 drawEmptyCircle(ctx, cx, cy, radius, color);
             }
@@ -198,9 +239,9 @@ function drawFilledCircle(ctx, cx, cy, radius, color, glowAlpha) {
         }
     }
 
-    // Glow animation
+    // Glow animation (couleur du thème : `color` peut être estompée en rgba)
     if (glowAlpha > 0) {
-        const rgb = hexToRgb(color);
+        const rgb = hexToRgb(getColor());
         ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${glowAlpha})`;
         ctx.lineWidth = 2;
         ctx.beginPath();

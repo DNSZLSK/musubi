@@ -6,7 +6,6 @@ import { state } from '../state.js';
 import { drawMenuScreen } from './menu.js';
 import { drawDifficultyScreen } from './difficulty.js';
 import { drawGameScreen } from './game.js';
-import { drawHowtoScreen } from './howto.js';
 import { drawNicknameScreen, stopNicknameInput } from './nickname.js';
 import { drawLeaderboardScreen } from './leaderboard.js';
 import { drawGameoverScreen } from './gameover.js';
@@ -46,9 +45,6 @@ export function showScreen(screenId) {
         break;
     case 'game':
         drawGameScreen();
-        break;
-    case 'howto':
-        drawHowtoScreen();
         break;
     case 'nickname':
         drawNicknameScreen();

@@ -95,6 +95,24 @@ body.theme-pink {
     gap: 5px;
 }
 
+/* Réglages secondaires du menu (pseudo, couleur) : petite ligne discrète */
+.menu-settings {
+    display: flex;
+    max-width: 100%;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 14px;
+}
+
+.menu-settings .menu-item {
+    margin: 0;
+    filter: none;
+    /* Petits écrans (≤ 320 px) : les deux boutons rétrécissent au lieu de déborder */
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
 #difficulty-screen,
 #howto-screen,
 #nickname-screen,
@@ -108,7 +126,35 @@ body.theme-pink {
 /* Difficulté : groupe centré (supprime la bande vide), BACK ancré en bas */
 #difficulty-screen {
     justify-content: center;
-    gap: 30px;
+    gap: 24px;
+}
+
+/* Réglages (niveau + chrono) regroupés dans un cadre : ce ne sont pas des boutons de lancement */
+.settings-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 12px;
+    border: 1px dashed var(--color);
+    border-radius: 4px;
+    width: min(420px, 100%);
+}
+
+.settings-box .menu-item {
+    margin: 4px 0;
+}
+
+/* Tailles de grille : trois boutons côte à côte qui lancent la partie */
+.size-row {
+    display: flex;
+    justify-content: center;
+    gap: clamp(8px, 3vw, 20px);
+    width: 100%;
+}
+
+.size-btn {
+    margin: 0;
+    width: min(110px, 27vw);
 }
 
 #difficulty-screen #diff-back {
@@ -128,6 +174,9 @@ body.theme-pink {
     width: 650px;
     max-width: 95%;
     height: auto;
+    /* Écrans bas (PC 768 px, petits mobiles) : le logo ne pousse pas le menu hors écran */
+    max-height: 30vh;
+    object-fit: contain;
     margin-bottom: 10px;
     filter: drop-shadow(0 0 10px rgba(74, 170, 74, 0.4));
 }
@@ -179,9 +228,11 @@ body.theme-pink #logo-img {
 
 /* ===== GAME SCREEN ===== */
 #game-screen {
-    padding: 20px;
+    padding: 16px;
     justify-content: flex-start;
-    padding-top: 80px;
+    padding-top: 72px;
+    padding-top: calc(72px + env(safe-area-inset-top));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 
 #top-bar {
@@ -234,12 +285,24 @@ body.theme-pink #logo-img {
 }
 
 #mode-canvas {
-    margin-top: 25px;
+    margin-top: 18px;
     filter: drop-shadow(0 0 5px var(--color)) drop-shadow(0 0 12px var(--color));
 }
 
-#hint-btn {
-    margin-top: 18px;
+/* UNDO / RESET : sous la grille, à portée de pouce */
+.action-row {
+    display: flex;
+    justify-content: center;
+    gap: clamp(16px, 8vw, 48px);
+    margin-top: 14px;
+}
+
+.action-row .menu-item {
+    margin: 0;
+}
+
+#tutorial-text {
+    margin-bottom: 10px;
 }
 
 #timer-canvas {

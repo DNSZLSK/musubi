@@ -17,8 +17,16 @@ import {
     getBeepSound
 } from './audio/manager.js';
 import { drawIcon } from './renderer/icons.js';
+import { drawPuzzle } from './puzzle/renderer.js';
 import { drawCenteredText } from './renderer/scanline.js';
-import { startGame, handlePuzzleClick, exitGame, useHint } from './screens/game.js';
+import {
+    startGame,
+    startTutorial,
+    handlePuzzleClick,
+    handleUndo,
+    handleReset,
+    exitGame
+} from './screens/game.js';
 import { startDaily } from './screens/daily.js';
 import { drawChronoToggle, drawCluesToggle } from './screens/difficulty.js';
 import {
@@ -76,14 +84,13 @@ function init() {
 
 // Configuration des éléments navigables par écran
 const SCREEN_NAV_CONFIG = {
-    menu: ['menu-daily', 'menu-newgame', 'menu-leaderboard', 'menu-nickname', 'menu-howto', 'menu-color'],
-    difficulty: ['diff-training', 'diff-challenge', 'diff-expert', 'chrono-toggle', 'diff-level', 'diff-back'],
-    howto: ['howto-back'],
+    menu: ['menu-daily', 'menu-newgame', 'menu-leaderboard', 'menu-howto', 'menu-nickname', 'menu-color'],
+    difficulty: ['diff-level', 'chrono-toggle', 'diff-training', 'diff-challenge', 'diff-expert', 'diff-back'],
     nickname: ['nickname-input-canvas', 'nickname-save', 'nickname-back'],
     leaderboard: ['lb-chrono-title', 'lb-prev', 'lb-next', 'leaderboard-back'],
     gameover: ['gameover-restart', 'gameover-menu'],
     'daily-result': ['daily-back'],
-    game: [] // Pas de navigation clavier en jeu
+    game: [] // En jeu : Échap = menu, U/Z = annuler, R = recommencer
 };
 
 /**
@@ -135,8 +142,11 @@ function handleKeyboardNavigation(e) {
         if (e.key === 'Escape' && screen === 'game') {
             exitGame();
             e.preventDefault();
-        } else if ((e.key === 'h' || e.key === 'H') && screen === 'game') {
-            useHint();
+        } else if (screen === 'game' && ['u', 'U', 'z', 'Z'].includes(e.key)) {
+            handleUndo();
+            e.preventDefault();
+        } else if (screen === 'game' && (e.key === 'r' || e.key === 'R')) {
+            handleReset();
             e.preventDefault();
         }
         return;
@@ -216,7 +226,6 @@ function handleKeyboardNavigation(e) {
 function handleEscapeKey(screen) {
     switch (screen) {
     case 'difficulty':
-    case 'howto':
     case 'nickname':
     case 'leaderboard':
         showScreen('menu');
@@ -244,6 +253,18 @@ function setupEventListeners() {
     // Navigation clavier
     document.addEventListener('keydown', handleKeyboardNavigation);
 
+    // Rotation, fenêtre redimensionnée, barre d'adresse mobile : on recalcule
+    // la taille de la grille (regroupé sur une frame pour éviter les rafales)
+    let resizeQueued = false;
+    window.addEventListener('resize', () => {
+        if (resizeQueued) return;
+        resizeQueued = true;
+        requestAnimationFrame(() => {
+            resizeQueued = false;
+            if (state.currentScreen === 'game') drawPuzzle();
+        });
+    });
+
     document.addEventListener('click', (e) => {
         if (
             e.target.classList.contains('menu-item') ||
@@ -266,7 +287,7 @@ function setupEventListeners() {
     
     document.getElementById('menu-leaderboard')?.addEventListener('click', () => showScreen('leaderboard'));
     document.getElementById('menu-nickname')?.addEventListener('click', () => showScreen('nickname'));
-    document.getElementById('menu-howto')?.addEventListener('click', () => showScreen('howto'));
+    document.getElementById('menu-howto')?.addEventListener('click', () => startTutorial());
     document.getElementById('menu-color')?.addEventListener('click', () => {
         state.currentTheme = (state.currentTheme + 1) % THEMES.length;
         document.body.className = THEMES[state.currentTheme];
@@ -293,7 +314,8 @@ function setupEventListeners() {
 
     // GAME
     document.getElementById('puzzle-canvas')?.addEventListener('click', handlePuzzleClick);
-    document.getElementById('hint-btn')?.addEventListener('click', useHint);
+    document.getElementById('undo-btn')?.addEventListener('click', handleUndo);
+    document.getElementById('reset-btn')?.addEventListener('click', handleReset);
     document.getElementById('icon-home')?.addEventListener('click', exitGame);
     document.getElementById('icon-stars')?.addEventListener('click', () => {
         state.starsEnabled = !state.starsEnabled;
@@ -305,9 +327,6 @@ function setupEventListeners() {
         drawIcon('icon-music', 'music', !state.musicMuted);
     });
     document.getElementById('equalizer')?.addEventListener('click', nextTrack);
-
-    // HOWTO
-    document.getElementById('howto-back')?.addEventListener('click', () => showScreen('menu'));
 
     // NICKNAME
     document.getElementById('nickname-input-canvas')?.addEventListener('click', startNicknameInput);

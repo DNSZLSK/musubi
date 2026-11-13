@@ -7,15 +7,26 @@ import { getColor, formatScore, formatTime } from '../utils.js';
 import { drawCenteredText } from '../renderer/scanline.js';
 import { drawAllIcons } from '../renderer/icons.js';
 import { drawPuzzle } from '../puzzle/renderer.js';
-import { generatePuzzle, checkWin, toggleCircle, triggerAnimation, updateAnimations, startMelt, updateMelt } from '../puzzle/generator.js';
+import {
+    generatePuzzle,
+    checkWin,
+    toggleCircle,
+    updateAnimations,
+    startMelt,
+    updateMelt,
+    undoMove,
+    resetBoard
+} from '../puzzle/generator.js';
 import { startMusicWithFade, stopMusic } from '../audio/manager.js';
 import { submitScore } from '../api/leaderboard.js';
 import { showScreen } from './index.js';
 import { completeDaily } from './daily.js';
 import { CHRONO_CONFIG, GAME_MODES } from '../constants.js';
+import { SCORE_MULTIPLIER, DIFFICULTIES } from '../puzzle/difficulty.js';
+import { drawTutorialText, loadTutorialStep, TUTORIAL_LENGTH } from './tutorial.js';
 
-// Pénalité de score par indice révélé (fraction du gain d'un puzzle)
-const HINT_PENALTY_RATIO = 0.25;
+// Durée de la célébration de victoire (en frames, ~60 fps)
+const CELEBRATE_FRAMES = 50;
 
 /**
  * Dessine l'écran de jeu
@@ -24,9 +35,10 @@ export function drawGameScreen() {
     drawAllIcons(state.starsEnabled, state.musicMuted);
     drawPuzzle();
     drawModeAndScore();
-    drawHintButton();
+    drawActionButtons();
+    drawTutorialText();
 
-    const showTimer = state.chronoEnabled || state.dailyMode;
+    const showTimer = state.tutorialStep < 0 && (state.chronoEnabled || state.dailyMode);
     const timerCanvas = document.getElementById('timer-canvas');
     if (timerCanvas) {
         timerCanvas.style.display = showTimer ? 'block' : 'none';
@@ -35,19 +47,27 @@ export function drawGameScreen() {
 }
 
 /**
- * Dessine le bouton d'indice
+ * Dessine les boutons UNDO / RESET (estompés quand ils n'ont aucun effet)
  */
-function drawHintButton() {
-    const canvas = document.getElementById('hint-btn');
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawCenteredText(ctx, 'HINT', canvas.width, 10, 3, getColor());
+export function drawActionButtons() {
+    const canUndo = state.history.length > 0;
+    const canReset = state.circles.some((row) => row.some((c) => c.filled));
+    const buttons = [
+        ['undo-btn', 'UNDO', canUndo],
+        ['reset-btn', 'RESET', canReset]
+    ];
+    for (const [id, label, enabled] of buttons) {
+        const canvas = document.getElementById(id);
+        if (!canvas) continue;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawCenteredText(ctx, label, canvas.width, 10, 3, enabled ? getColor() : '#333');
+        canvas.setAttribute('aria-disabled', String(!enabled));
+    }
 }
 
 /**
- * Dessine le mode et le score
+ * Dessine le mode (taille + niveau) et le score
  */
 export function drawModeAndScore() {
     const canvas = document.getElementById('mode-canvas');
@@ -56,19 +76,25 @@ export function drawModeAndScore() {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Mode daily : pas de score cumulé, on affiche juste le label
-    if (state.dailyMode) {
-        drawCenteredText(ctx, 'DAILY PUZZLE', canvas.width, 10, 3, getColor());
-        return;
+    let text;
+    if (state.tutorialStep >= 0) {
+        text = `TUTORIAL ${state.tutorialStep + 1}-${TUTORIAL_LENGTH}`;
+    } else if (state.celebrating) {
+        text = state.dailyMode ? 'SOLVED' : `+${formatScore(state.lastPoints)} PTS`;
+    } else if (state.dailyMode) {
+        // Mode daily : pas de score cumulé
+        text = 'DAILY  5X5 NORMAL';
+    } else {
+        const grid = GAME_MODES[state.gridSize]?.grid ?? '';
+        const level = DIFFICULTIES[state.difficulty]?.label ?? '';
+        text = `${grid} ${level}  ${formatScore(state.currentScore)} PTS`;
     }
 
-    const mode = GAME_MODES[state.gridSize];
-    const text = `${mode.name}  ${formatScore(state.currentScore)} PTS`;
-    
     // Réduire la taille si le texte est trop long
     const scale = text.length > 20 ? 2 : 3;
-    
+
     drawCenteredText(ctx, text, canvas.width, 10, scale, getColor());
+    canvas.setAttribute('aria-label', text);
 }
 
 /**
@@ -107,6 +133,7 @@ export function startGame(gridSize, options = {}) {
 
     state.gridSize = gridSize;
     state.dailyMode = daily;
+    state.tutorialStep = -1;
     resetGame();
     generatePuzzle(rng);
     showScreen('game');
@@ -120,6 +147,27 @@ export function startGame(gridSize, options = {}) {
 
     // Lance la boucle d'animation
     requestAnimationFrame(gameLoop);
+}
+
+/**
+ * Lance le tutoriel jouable (depuis HOW TO PLAY uniquement).
+ */
+export function startTutorial() {
+    state.dailyMode = false;
+    resetGame();
+    resetChrono();
+    loadTutorialStep(0);
+    showScreen('game');
+    startMusicWithFade();
+    requestAnimationFrame(gameLoop);
+}
+
+/** Fin du tutoriel (réussi ou quitté) : retour au menu */
+function endTutorial() {
+    state.tutorialStep = -1;
+    resetGame();
+    stopMusic();
+    showScreen('menu');
 }
 
 /**
@@ -155,6 +203,19 @@ function gameLoop() {
 
     let needsRedraw = false;
 
+    // Célébration : le nœud complet s'illumine, puis on enchaîne
+    if (state.celebrating) {
+        state.celebrateProgress += 1 / CELEBRATE_FRAMES;
+        needsRedraw = true;
+        if (state.celebrateProgress >= 1) {
+            state.celebrating = false;
+            state.celebrateProgress = 0;
+            afterCelebration();
+            if (state.currentScreen !== 'game') return;
+            drawModeAndScore();
+        }
+    }
+
     // Update melt animation
     if (state.meltActive) {
         const meltDone = updateMelt();
@@ -162,6 +223,7 @@ function gameLoop() {
 
         if (meltDone) {
             generatePuzzle();
+            drawActionButtons();
         }
     }
 
@@ -177,12 +239,17 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+/** Vrai si une animation de victoire bloque les actions du joueur */
+function isBusy() {
+    return state.meltActive || state.celebrating || state.currentScreen !== 'game';
+}
+
 /**
  * Gère le clic sur le puzzle
  */
 export function handlePuzzleClick(event) {
     // Ignore les clics pendant l'animation de victoire (évite le re-comptage de score)
-    if (state.meltActive) return;
+    if (isBusy()) return;
 
     const canvas = document.getElementById('puzzle-canvas');
     if (!canvas) return;
@@ -198,68 +265,81 @@ export function handlePuzzleClick(event) {
     const gridY = Math.floor(y / cellSize);
 
     if (toggleCircle(gridX, gridY)) {
-        drawPuzzle();
+        afterMove();
+    }
+}
 
-        if (checkWin()) {
-            handleWin();
-        }
+/** Redessine après un coup et teste la victoire */
+function afterMove() {
+    drawPuzzle();
+    drawActionButtons();
+    if (checkWin()) handleWin();
+}
+
+/** Annule le dernier coup */
+export function handleUndo() {
+    if (isBusy()) return;
+    if (undoMove()) afterMove();
+}
+
+/** Vide la grille en cours */
+export function handleReset() {
+    if (isBusy()) return;
+    if (resetBoard()) {
+        drawPuzzle();
+        drawActionButtons();
     }
 }
 
 /**
- * Gère la victoire d'un puzzle
+ * Gère la victoire d'un puzzle : on compte, puis on laisse le nœud briller
+ * un instant avant d'enchaîner (afterCelebration).
  */
 function handleWin() {
+    if (state.tutorialStep < 0) {
+        if (state.dailyMode) {
+            stopDailyTimer();
+        } else {
+            const base = state.gridSize * state.gridSize * 100;
+            const points = Math.round(base * (SCORE_MULTIPLIER[state.difficulty] ?? 1));
+            state.lastPoints = points;
+            state.currentScore += points;
+            state.puzzlesSolved++;
+
+            // Bonus de temps en mode chrono
+            if (state.chronoEnabled && state.chronoActive) {
+                state.chronoRemaining += CHRONO_CONFIG.bonus[state.gridSize] || 10;
+                drawTimer();
+            }
+        }
+    }
+
+    state.celebrating = true;
+    state.celebrateProgress = 0;
+    drawModeAndScore();
+}
+
+/** Suite de la victoire, une fois la célébration terminée */
+function afterCelebration() {
+    // Tutoriel : étape suivante, ou fin
+    if (state.tutorialStep >= 0) {
+        if (loadTutorialStep(state.tutorialStep + 1)) {
+            drawGameScreen();
+        } else {
+            endTutorial();
+        }
+        return;
+    }
+
     // Mode daily : puzzle unique → on termine au lieu d'enchaîner
     if (state.dailyMode) {
-        stopDailyTimer();
         stopMusic();
         completeDaily();
         return;
     }
 
-    const base = state.gridSize * state.gridSize * 100;
-    const penalty = state.hintsUsed * Math.floor(base * HINT_PENALTY_RATIO);
-    const points = Math.max(Math.floor(base * 0.1), base - penalty);
-    state.currentScore += points;
-    state.puzzlesSolved++;
-
-    // Bonus de temps en mode chrono
-    if (state.chronoEnabled && state.chronoActive) {
-        state.chronoRemaining += CHRONO_CONFIG.bonus[state.gridSize] || 10;
-        drawTimer();
-    }
-
-    drawModeAndScore();
-
     // Lance l'animation melt (puis génère le puzzle suivant)
     startMelt();
-}
-
-/**
- * Révèle une case correcte (indice). Pénalise le score.
- */
-export function useHint() {
-    if (state.meltActive || state.currentScreen !== 'game') return;
-
-    const size = state.gridSize;
-    const wrong = [];
-    for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-            if (state.circles[y][x].filled !== state.circles[y][x].solution) {
-                wrong.push({ x, y });
-            }
-        }
-    }
-    if (wrong.length === 0) return; // déjà résolu correctement
-
-    const pick = wrong[Math.floor(Math.random() * wrong.length)];
-    state.circles[pick.y][pick.x].filled = state.circles[pick.y][pick.x].solution;
-    state.hintsUsed++;
-    triggerAnimation(pick.x, pick.y);
-    drawPuzzle();
-
-    if (checkWin()) handleWin();
 }
 
 /**
@@ -304,6 +384,11 @@ function endChrono() {
  * Quitte la partie et retourne au menu
  */
 export function exitGame() {
+    if (state.tutorialStep >= 0) {
+        endTutorial();
+        return;
+    }
+
     stopChrono();
     stopDailyTimer();
 
