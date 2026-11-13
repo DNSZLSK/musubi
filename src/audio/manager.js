@@ -94,6 +94,30 @@ export function startMusicWithFade() {
 }
 
 /**
+ * Baisse la musique en fondu puis l'arrête (fin de partie en douceur).
+ * Sur iOS le volume est en lecture seule : la musique s'arrête alors à la fin du délai.
+ */
+export function fadeOutMusic(duration = 900) {
+    if (!bgMusic || !state.musicStarted) return;
+    const start = bgMusic.volume;
+    const steps = 15;
+    let i = 0;
+    const timer = setInterval(() => {
+        i++;
+        try {
+            bgMusic.volume = Math.max(0, start * (1 - i / steps));
+        } catch {
+            /* volume non modifiable (iOS) */
+        }
+        if (i >= steps) {
+            clearInterval(timer);
+            stopMusic();
+            if (!state.musicMuted) bgMusic.volume = AUDIO_CONFIG.defaultVolume;
+        }
+    }, duration / steps);
+}
+
+/**
  * Arrête la musique
  */
 export function stopMusic() {

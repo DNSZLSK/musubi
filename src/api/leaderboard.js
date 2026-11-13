@@ -62,7 +62,7 @@ function showNotification(message, isError = false) {
     toast.textContent = message;
     toast.style.cssText = `
         position: fixed;
-        bottom: 20px;
+        bottom: calc(110px + env(safe-area-inset-bottom));
         left: 50%;
         transform: translateX(-50%);
         padding: 12px 24px;

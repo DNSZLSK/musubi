@@ -17,7 +17,7 @@ import {
     undoMove,
     resetBoard
 } from '../puzzle/generator.js';
-import { startMusicWithFade, stopMusic } from '../audio/manager.js';
+import { startMusicWithFade, stopMusic, fadeOutMusic } from '../audio/manager.js';
 import { submitScore } from '../api/leaderboard.js';
 import { showScreen } from './index.js';
 import { completeDaily } from './daily.js';
@@ -27,6 +27,10 @@ import { drawTutorialText, loadTutorialStep, TUTORIAL_LENGTH } from './tutorial.
 
 // Durée de la célébration de victoire (en frames, ~60 fps)
 const CELEBRATE_FRAMES = 50;
+// Daily : on laisse le nœud résolu à l'écran plus longtemps (fin de session)
+const DAILY_CELEBRATE_FRAMES = 110;
+// Durée du fondu de sortie vers l'écran de résultat du daily (ms)
+const DAILY_FADE_MS = 500;
 
 /**
  * Dessine l'écran de jeu
@@ -205,7 +209,9 @@ function gameLoop() {
 
     // Célébration : le nœud complet s'illumine, puis on enchaîne
     if (state.celebrating) {
-        state.celebrateProgress += 1 / CELEBRATE_FRAMES;
+        const frames =
+            state.dailyMode && state.tutorialStep < 0 ? DAILY_CELEBRATE_FRAMES : CELEBRATE_FRAMES;
+        state.celebrateProgress += 1 / frames;
         needsRedraw = true;
         if (state.celebrateProgress >= 1) {
             state.celebrating = false;
@@ -331,10 +337,11 @@ function afterCelebration() {
         return;
     }
 
-    // Mode daily : puzzle unique → on termine au lieu d'enchaîner
+    // Mode daily : puzzle unique → fondu de sortie vers l'écran de résultat
     if (state.dailyMode) {
-        stopMusic();
-        completeDaily();
+        fadeOutMusic(DAILY_FADE_MS + 400);
+        document.getElementById('game-screen')?.classList.add('fading-out');
+        setTimeout(completeDaily, DAILY_FADE_MS);
         return;
     }
 

@@ -17,7 +17,7 @@ import { drawDailyResultScreen } from './daily.js';
 export function showScreen(screenId) {
     // Cache tous les écrans
     document.querySelectorAll('.screen').forEach((screen) => {
-        screen.classList.remove('active');
+        screen.classList.remove('active', 'fading-out');
     });
 
     // Affiche l'écran demandé

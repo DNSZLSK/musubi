@@ -81,6 +81,21 @@ body.theme-pink {
     display: flex;
 }
 
+.screen.fading-out {
+    opacity: 0;
+    transition: opacity 0.5s ease-in;
+}
+
+/* Résultat du daily : contenu centré, le nœud résolu en miniature */
+#daily-result-screen .content {
+    gap: 14px;
+}
+
+#daily-knot {
+    width: min(180px, 45vw);
+    filter: drop-shadow(0 0 4px var(--color));
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
