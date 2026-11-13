@@ -72,3 +72,87 @@ describe('grade', () => {
         }
     });
 });
+
+// --- Contrôle indépendant du solveur ----------------------------------------
+// Compteur de solutions écrit sans logic.js (DFS + bornes + connexité en feuille) :
+// s'il trouvait une 2e solution, le joueur pourrait respecter les règles sans gagner.
+function independentCount(numbers, visible, n) {
+    const cons = [];
+    for (let y = 0; y < n - 1; y++)
+        for (let x = 0; x < n - 1; x++)
+            if (visible[y][x]) {
+                const i = y * n + x;
+                cons.push({ c: [i, i + 1, i + n, i + n + 1], v: numbers[y][x] });
+            }
+    const by = Array.from({ length: n * n }, () => []);
+    cons.forEach((k) => k.c.forEach((i) => by[i].push(k)));
+    const g = new Int8Array(n * n).fill(-1);
+    const sols = [];
+    const connected = () => {
+        const start = g.indexOf(1);
+        if (start < 0) return false;
+        const seen = new Uint8Array(n * n);
+        const st = [start];
+        seen[start] = 1;
+        let c = 1;
+        while (st.length) {
+            const i = st.pop();
+            const x = i % n;
+            const y = (i - x) / n;
+            for (const j of [x > 0 ? i - 1 : -1, x < n - 1 ? i + 1 : -1, y > 0 ? i - n : -1, y < n - 1 ? i + n : -1]) {
+                if (j >= 0 && g[j] === 1 && !seen[j]) {
+                    seen[j] = 1;
+                    c++;
+                    st.push(j);
+                }
+            }
+        }
+        return c === g.reduce((a, b) => a + b, 0);
+    };
+    (function rec(i) {
+        if (sols.length >= 2) return;
+        if (i === n * n) {
+            if (connected()) sols.push(Array.from(g));
+            return;
+        }
+        for (const v of [0, 1]) {
+            g[i] = v;
+            let ok = true;
+            for (const k of by[i]) {
+                let s = 0;
+                let u = 0;
+                for (const j of k.c) {
+                    if (g[j] < 0) u++;
+                    else s += g[j];
+                }
+                if (s > k.v || s + u < k.v) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) rec(i + 1);
+        }
+        g[i] = -1;
+    })(0);
+    return sols;
+}
+
+describe('puzzles générés (contrôle indépendant)', () => {
+    it('ont exactement une solution, celle attendue par le jeu', async () => {
+        const { state } = await import('../src/state.js');
+        const { generatePuzzle } = await import('../src/puzzle/generator.js');
+        for (const size of [4, 5, 6]) {
+            for (const level of [0, 1, 2]) {
+                for (let k = 0; k < 4; k++) {
+                    state.gridSize = size;
+                    state.difficulty = level;
+                    state.dailyMode = false;
+                    generatePuzzle();
+                    const sols = independentCount(state.numbers, state.clueVisible, size);
+                    expect(sols.length).toBe(1);
+                    expect(sols[0]).toEqual(state.circles.flat().map((c) => (c.solution ? 1 : 0)));
+                }
+            }
+        }
+    });
+});

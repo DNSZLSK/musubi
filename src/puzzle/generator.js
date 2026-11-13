@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { state } from '../state.js';
-import { solve, grade, TIER_FOR_LEVEL } from './logic.js';
+import { solve, grade, TIER_FOR_LEVEL, HIDE_RATIO_FOR_LEVEL } from './logic.js';
 
 // Proportion de cercles remplis dans la solution (le nœud)
 const FILL_DENSITY = 0.42;
@@ -75,11 +75,14 @@ export function computeNumbers(sol, size) {
 }
 
 /**
- * Masque un maximum d'indices tant que le puzzle reste résoluble avec le
- * niveau de raisonnement `maxTier` (donc à solution unique).
+ * Masque des indices tant que le puzzle reste résoluble avec le niveau de
+ * raisonnement `maxTier` (donc à solution unique), sans dépasser la part
+ * `maxRatio` d'indices cachés.
  */
-export function hideClues(numbers, size, rng, maxTier) {
+export function hideClues(numbers, size, rng, maxTier, maxRatio = 1) {
     const visible = numbers.map((row) => row.map(() => true));
+    const maxHidden = Math.round(numbers.length * numbers.length * maxRatio);
+    let hidden = 0;
     const order = [];
     for (let y = 0; y < size - 1; y++) for (let x = 0; x < size - 1; x++) order.push([y, x]);
     for (let i = order.length - 1; i > 0; i--) {
@@ -87,8 +90,10 @@ export function hideClues(numbers, size, rng, maxTier) {
         [order[i], order[j]] = [order[j], order[i]];
     }
     for (const [y, x] of order) {
+        if (hidden >= maxHidden) break;
         visible[y][x] = false;
-        if (!solve(numbers, visible, size, maxTier).solved) visible[y][x] = true;
+        if (solve(numbers, visible, size, maxTier).solved) hidden++;
+        else visible[y][x] = true;
     }
     return visible;
 }
@@ -103,6 +108,7 @@ export function generatePuzzle(rng = Math.random) {
     const size = state.gridSize;
     const level = state.dailyMode ? DAILY_DIFFICULTY : state.difficulty;
     const target = TIER_FOR_LEVEL[level] ?? 2;
+    const ratio = HIDE_RATIO_FOR_LEVEL[level] ?? 1;
     state.history = [];
 
     let best = null;
@@ -114,7 +120,7 @@ export function generatePuzzle(rng = Math.random) {
         // (dernière tentative : on garde quoi qu'il arrive pour ne jamais échouer)
         if (grade(numbers, all, size) > target && (best || attempt < MAX_ATTEMPTS - 1)) continue;
 
-        const visible = hideClues(numbers, size, rng, target);
+        const visible = hideClues(numbers, size, rng, target, ratio);
         const candidate = { sol, numbers, visible, tier: grade(numbers, visible, size) };
         if (candidate.tier === target) {
             best = candidate;

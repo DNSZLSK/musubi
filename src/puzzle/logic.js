@@ -22,6 +22,13 @@ const UNKNOWN = -1;
 export const TIER_FOR_LEVEL = [1, 2, 3];
 
 /**
+ * Part maximale d'indices cachés, par difficulté : la difficulté monte en
+ * crescendo (EASY ~20 %, NORMAL ~35 %, HARD autant que possible).
+ * Mesuré en 6x6 : ~5 / ~9 / ~12 indices cachés sur 25.
+ */
+export const HIDE_RATIO_FOR_LEVEL = [0.2, 0.35, 1];
+
+/**
  * Construit la liste des contraintes (blocs 2x2 visibles).
  * @param {number[][]} numbers - (size-1)x(size-1)
  * @param {boolean[][]} visible - même taille

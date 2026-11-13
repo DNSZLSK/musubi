@@ -167,3 +167,21 @@ describe('toggleCircle', () => {
         expect(state.animations[0]).toEqual({ x: 1, y: 2, progress: 0 });
     });
 });
+describe('crescendo de difficulté', () => {
+    it('chaque niveau cache plus d’indices que le précédent (6x6)', () => {
+        state.gridSize = 6;
+        state.dailyMode = false;
+        const avg = [0, 1, 2].map((level) => {
+            state.difficulty = level;
+            let hidden = 0;
+            for (let i = 0; i < 12; i++) {
+                generatePuzzle();
+                hidden += state.clueVisible.flat().filter((v) => !v).length;
+            }
+            return hidden / 12;
+        });
+        expect(avg[0]).toBeLessThanOrEqual(5);
+        expect(avg[1]).toBeGreaterThan(avg[0]);
+        expect(avg[2]).toBeGreaterThan(avg[1]);
+    });
+});

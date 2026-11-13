@@ -95,23 +95,13 @@ body.theme-pink {
     gap: 5px;
 }
 
-/* Réglages secondaires du menu (pseudo, couleur) : petite ligne discrète */
-.menu-settings {
-    display: flex;
-    max-width: 100%;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    margin-top: 14px;
+/* Écrans bas (iPhone SE, petits Android) : menu resserré */
+@media (max-height: 600px) {
+    #menu-screen .menu-item {
+        margin: 2px 0;
+    }
 }
 
-.menu-settings .menu-item {
-    margin: 0;
-    filter: none;
-    /* Petits écrans (≤ 320 px) : les deux boutons rétrécissent au lieu de déborder */
-    flex: 0 1 auto;
-    min-width: 0;
-}
 
 #difficulty-screen,
 #howto-screen,
@@ -198,8 +188,8 @@ body.theme-pink #logo-img {
 }
 
 #credits-footer {
-    position: absolute;
-    bottom: 15px;
+    /* Dans le flux, sous le menu : ne chevauche jamais COLOR sur les écrans bas */
+    margin-top: 14px;
     font-family: monospace;
     font-size: 10px;
     color: #333;
